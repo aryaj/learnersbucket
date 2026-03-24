@@ -1,0 +1,35 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Document</title>
+  </head>
+  <body>
+    <script>
+      function samplerFunction(fn, count) {
+        let counter = 0;
+        return function () {
+          if (++counter === count) {
+            fn();
+            counter = 0;
+          }
+        };
+      }
+
+      const message = function () {
+        console.log("This is a message function.");
+      };
+
+      const sample = samplerFunction(message, 2);
+      sample();
+      sample();
+      sample();
+      sample();
+      sample();
+      sample();
+      sample();
+      sample();
+    </script>
+  </body>
+</html>

@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+<body>
+    <script>
+        function toggleFunction(...args) {
+            let index = -1;
+            return function(){
+                if(++index === args.length){
+                    index = 0;
+                }
+                console.log(args[index]);
+            }
+        }
+
+        const toggle = toggleFunction("ONE", "TWO", "THREE", "FOUR", "FIVE", "SIX", "SEVEN", "EIGHT");
+        toggle(); // Output: ONE
+        toggle(); // Output: TWO
+        toggle(); // Output: THREE
+        toggle(); // Output: FOUR
+        toggle(); // Output: FIVE
+        toggle(); // Output: SIX
+        toggle(); // Output: SEVEN
+        toggle(); // Output: EIGHT
+        toggle(); // Output: ONE
+    </script>
+</body>
+</html>
