@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+<body>
+    <script>
+        const List = function(val){
+            this.val = val;
+            this.next = null
+        }
+
+        const list1 = new List(1);
+        const list2 = new List(2);
+        const list3 = new List(3);
+
+        list1.next = list2;
+        list2.next = list3;
+        list3.next = list1;
+
+        console.log(list1);
+
+        function removeCycle(obj){
+            let set = new WeakSet([obj]);
+
+            function iterateObj(obj){
+                for(let key in obj){
+                    if(obj.hasOwnProperty(key)){
+                        if(typeof obj[key] === 'object'){
+                            if(set.has(obj[key])){
+                                obj[key] = null
+                            }
+                            else {
+                                set.add(obj[key]);
+                                iterateObj(obj[key])
+                            }
+                        }
+                    }
+                }
+            } 
+
+            iterateObj(obj);
+
+        }
+
+        removeCycle(list1);
+
+        console.log(list1);
+
+    </script>
+</body>
+</html>

@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+<body>
+    <script>
+        function Pipe(obj){
+            return (...args) =>{
+                for (let key in obj){
+                    const value = obj[key];
+                    if(typeof value === 'function'){
+                        obj[key] = value(...args)
+                    }
+                    else if(typeof value === 'object' && value !== null) {
+                        obj[key] = Pipe(value)(...args);
+                    }
+                    else {
+                        obj[key] = value;
+                    }
+                }
+                return obj;
+            }
+        }
+        const obj = {
+            a: {
+                b: ( a,b,c) => a + b + c ,
+                c: (a,b) => a * b
+            },
+            d: (a,b) => a - b,
+            e: (a,b) => a / b,
+            f: {
+                g: (a,b) => a % b,
+                h:{
+                    i: (a,b) => a ** b
+                }
+            },
+            j: true,
+            k: "Hello",
+            l: [1,2,3],
+            m:null
+
+        }
+        const pipedObj = Pipe(obj)(2,3,4);
+        console.log(pipedObj);
+    </script>
+</body>
+</html>

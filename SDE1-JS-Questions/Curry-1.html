@@ -1,0 +1,25 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Document</title>
+  </head>
+  <body>
+    <script>
+      function curry() {
+        let sum = 0;
+        return (val = 0) => {
+          sum += val;
+          return sum;
+        };
+      }
+      const sum = curry();
+      console.log(sum(5));
+      console.log(sum(3));
+      console.log(sum(4));
+      console.log(sum(0));
+      console.log(sum());
+    </script>
+  </body>
+</html>
