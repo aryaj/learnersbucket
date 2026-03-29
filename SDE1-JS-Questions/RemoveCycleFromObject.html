@@ -3,52 +3,67 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Document</title>
+    <title>Remove Cycle From Object</title>
 </head>
 <body>
+    <h1>Remove Cycle From Object</h1>
+    <p>This example creates a simple linked list with a cycle and removes the cycle by replacing repeated object references with <code>null</code>.</p>
+    <pre><code>list1 &rarr; list2 &rarr; list3 &rarr; list1</code></pre>
+    <p>After running <code>removeCycle(list1)</code>, the cycle is broken and the repeated reference is removed.</p>
     <script>
-        const List = function(val){
+        // Simple constructor for a linked list node.
+        const List = function(val) {
             this.val = val;
-            this.next = null
-        }
+            this.next = null;
+        };
 
+        // Create three nodes and link them into a cycle.
         const list1 = new List(1);
         const list2 = new List(2);
         const list3 = new List(3);
 
         list1.next = list2;
         list2.next = list3;
-        list3.next = list1;
+        list3.next = list1; // Creates a cycle back to list1.
 
-        console.log(list1);
+        console.log('Before removing cycle:', list1);
 
-        function removeCycle(obj){
-            let set = new WeakSet([obj]);
+        /**
+         * Remove cyclic references from an object graph.
+         *
+         * This function traverses the object recursively and uses a WeakSet
+         * to track visited objects. When it encounters an object reference that
+         * has already been visited, it breaks the cycle by setting that property
+         * to null.
+         *
+         * @param {Object} obj - The root object to inspect.
+         */
+        function removeCycle(obj) {
+            const set = new WeakSet([obj]);
 
-            function iterateObj(obj){
-                for(let key in obj){
-                    if(obj.hasOwnProperty(key)){
-                        if(typeof obj[key] === 'object'){
-                            if(set.has(obj[key])){
-                                obj[key] = null
-                            }
-                            else {
-                                set.add(obj[key]);
-                                iterateObj(obj[key])
-                            }
+            function iterateObj(current) {
+                for (let key in current) {
+                    if (!current.hasOwnProperty(key)) continue;
+
+                    const value = current[key];
+                    if (typeof value === 'object' && value !== null) {
+                        if (set.has(value)) {
+                            // Cycle detected: break the reference.
+                            current[key] = null;
+                        } else {
+                            set.add(value);
+                            iterateObj(value);
                         }
                     }
                 }
-            } 
+            }
 
             iterateObj(obj);
-
         }
 
         removeCycle(list1);
 
-        console.log(list1);
-
+        console.log('After removing cycle:', list1);
     </script>
 </body>
 </html>

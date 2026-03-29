@@ -3,21 +3,30 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Document</title>
+    <title>Toggle Function</title>
 </head>
 <body>
+    <h1>Toggle Function</h1>
+    <p>This example creates a toggle function that cycles through a list of arguments each time it is called.</p>
+    <p>When the end of the argument list is reached, it wraps back to the first element.</p>
     <script>
+        /**
+         * Return a function that cycles through the provided values.
+         *
+         * @param {...*} args - Values to toggle through.
+         * @returns {Function} A function that logs the next value on each call.
+         */
         function toggleFunction(...args) {
             let index = -1;
-            return function(){
-                if(++index === args.length){
+            return function () {
+                if (++index === args.length) {
                     index = 0;
                 }
                 console.log(args[index]);
-            }
+            };
         }
 
-        const toggle = toggleFunction("ONE", "TWO", "THREE", "FOUR", "FIVE", "SIX", "SEVEN", "EIGHT");
+        const toggle = toggleFunction('ONE', 'TWO', 'THREE', 'FOUR', 'FIVE', 'SIX', 'SEVEN', 'EIGHT');
         toggle(); // Output: ONE
         toggle(); // Output: TWO
         toggle(); // Output: THREE

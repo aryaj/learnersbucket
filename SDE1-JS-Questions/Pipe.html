@@ -3,47 +3,59 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Document</title>
+    <title>Pipe Object Values</title>
 </head>
 <body>
+    <h1>Pipe Object Values</h1>
+    <p>This example transforms an object by invoking all functions found inside it and returning their results.</p>
+    <p>The <code>Pipe</code> helper recursively walks the object and applies arguments to function values.</p>
     <script>
-        function Pipe(obj){
-            return (...args) =>{
-                for (let key in obj){
+        /**
+         * Recursively evaluate functions inside an object.
+         *
+         * For every function property, invoke it with the supplied arguments.
+         * For nested objects, recurse into them and process functions there as well.
+         * Non-function values are preserved.
+         *
+         * @param {Object} obj - The object to transform.
+         * @returns {function(...*): Object} A function that applies arguments to function values.
+         */
+        function Pipe(obj) {
+            return (...args) => {
+                for (let key in obj) {
                     const value = obj[key];
-                    if(typeof value === 'function'){
-                        obj[key] = value(...args)
-                    }
-                    else if(typeof value === 'object' && value !== null) {
+                    if (typeof value === 'function') {
+                        obj[key] = value(...args);
+                    } else if (typeof value === 'object' && value !== null) {
                         obj[key] = Pipe(value)(...args);
-                    }
-                    else {
+                    } else {
                         obj[key] = value;
                     }
                 }
                 return obj;
-            }
+            };
         }
+
         const obj = {
             a: {
-                b: ( a,b,c) => a + b + c ,
-                c: (a,b) => a * b
+                b: (a, b, c) => a + b + c,
+                c: (a, b) => a * b,
             },
-            d: (a,b) => a - b,
-            e: (a,b) => a / b,
+            d: (a, b) => a - b,
+            e: (a, b) => a / b,
             f: {
-                g: (a,b) => a % b,
-                h:{
-                    i: (a,b) => a ** b
-                }
+                g: (a, b) => a % b,
+                h: {
+                    i: (a, b) => a ** b,
+                },
             },
             j: true,
-            k: "Hello",
-            l: [1,2,3],
-            m:null
+            k: 'Hello',
+            l: [1, 2, 3],
+            m: null,
+        };
 
-        }
-        const pipedObj = Pipe(obj)(2,3,4);
+        const pipedObj = Pipe(obj)(2, 3, 4);
         console.log(pipedObj);
     </script>
 </body>

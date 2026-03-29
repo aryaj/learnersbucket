@@ -3,10 +3,20 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Document</title>
+    <title>Sampler Function</title>
   </head>
   <body>
+    <h1>Sampler Function</h1>
+    <p>This example shows a higher-order sampler function that invokes a callback only on every nth call.</p>
+    <p>The returned function increments an internal counter and calls the original function when the counter reaches the threshold.</p>
     <script>
+      /**
+       * Create a sampler that calls <code>fn</code> every <code>count</code> invocations.
+       *
+       * @param {Function} fn - The callback to sample.
+       * @param {number} count - The number of calls before <code>fn</code> is invoked.
+       * @returns {Function} A function that samples the provided callback.
+       */
       function samplerFunction(fn, count) {
         let counter = 0;
         return function () {
@@ -18,18 +28,18 @@
       }
 
       const message = function () {
-        console.log("This is a message function.");
+        console.log('This is a message function.');
       };
 
       const sample = samplerFunction(message, 2);
-      sample();
-      sample();
-      sample();
-      sample();
-      sample();
-      sample();
-      sample();
-      sample();
+      sample(); // no output
+      sample(); // outputs message
+      sample(); // no output
+      sample(); // outputs message
+      sample(); // no output
+      sample(); // outputs message
+      sample(); // no output
+      sample(); // outputs message
     </script>
   </body>
 </html>

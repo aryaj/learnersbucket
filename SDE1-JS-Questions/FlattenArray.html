@@ -3,24 +3,19 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Document</title>
+    <title>Flatten Array</title>
   </head>
   <body>
+    <h1>Flatten Array</h1>
+    <p>This example flattens a deeply nested array into a single-level array.</p>
+    <p>It demonstrates a recursive <code>flattenArray</code> implementation using <code>Array.prototype.reduce</code>.</p>
     <script>
-      /*      function flattenArray(arr,result = []) {
-            for(let i = 0;i < arr.length; i++){
-                const value = arr[i]
-                if(Array.isArray(value)){
-                    flattenArray(value,result);
-                } else {
-                    result.push(value);
-                }
-            }
-            return result;
-        } */
-
-      // Using reduce
-
+      /**
+       * Flatten a nested array recursively.
+       *
+       * @param {Array} arr - The array to flatten.
+       * @returns {Array} A new array with all nested values flattened.
+       */
       function flattenArray(arr) {
         return arr.reduce((result, toFlatten) => {
           return result.concat(
@@ -29,11 +24,10 @@
         }, []);
       }
 
-      // Using flat
-
-      console.log([1, [2, 3], [4, [5, 6]], 7, [8, [9, [10]]]].flat(Infinity)); // Output: [1, 2, 3, 4, 5, 6, 7]
-
-      console.log(flattenArray([1, [2, 3], [4, [5, 6]], 7, [8, [9, [10]]]])); // Output: [1, 2, 3, 4, 5, 6, 7]
+      // Example usage
+      const nested = [1, [2, 3], [4, [5, 6]], 7, [8, [9, [10]]]];
+      console.log(nested.flat(Infinity));
+      console.log(flattenArray(nested));
     </script>
   </body>
 </html>

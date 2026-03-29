@@ -3,10 +3,18 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Document</title>
+    <title>Method Chaining Calculator</title>
   </head>
   <body>
+    <h1>Method Chaining Calculator</h1>
+    <p>This example implements a calculator object that supports method chaining.</p>
+    <p>Each arithmetic method returns <code>this</code> so multiple calls can be chained together before retrieving the result.</p>
     <script>
+      /**
+       * Create a chainable calculator object.
+       *
+       * @returns {{add: function, subtract: function, multiply: function, divide: function, result: function}} A chainable calculator.
+       */
       function calculator() {
         return {
           total: 0,
@@ -32,13 +40,14 @@
         };
       }
 
-      let result = calculator()
+      const result = calculator()
         .add(10)
         .subtract(2)
         .divide(2)
         .multiply(5)
         .result();
-      console.log(result);
+
+      console.log(result); // 20
     </script>
   </body>
 </html>

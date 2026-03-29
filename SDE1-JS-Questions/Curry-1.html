@@ -3,23 +3,35 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Document</title>
-  </head>
-  <body>
-    <script>
-      function curry() {
-        let sum = 0;
-        return (val = 0) => {
-          sum += val;
-          return sum;
-        };
-      }
-      const sum = curry();
-      console.log(sum(5));
-      console.log(sum(3));
-      console.log(sum(4));
-      console.log(sum(0));
-      console.log(sum());
-    </script>
-  </body>
-</html>
+      <title>Curry Function Example</title>
+    </head>
+    <body>
+      <h1>Curry Function Example</h1>
+      <p>This page demonstrates a simple curry-like function that returns a closure capturing a running total.</p>
+      <p>The returned function accepts a value, adds it to the accumulated sum, and returns the updated total.</p>
+      <script>
+        /**
+         * Create a curried accumulator function.
+         *
+         * The returned function keeps a private <code>sum</code> variable in closure scope.
+         * Each invocation adds the provided argument to that total and returns the updated value.
+         * If no argument is passed, the default value <code>0</code> is used.
+         *
+         * @returns {function(number=): number} A function that accumulates values.
+         */
+        function curry() {
+          let sum = 0;
+          return (val = 0) => {
+            sum += val;
+            return sum;
+          };
+        }
+
+        const sum = curry();
+
+        // Demonstrate the accumulator behavior.
+        console.log(sum(5)); // 5
+        console.log(sum(3)); // 8
+        console.log(sum(4)); // 12
+        console.log(sum(0)); // 12
+        console.log(sum());  // 12 (default 0)
