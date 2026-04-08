@@ -1,0 +1,45 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Document</title>
+  </head>
+  <body>
+    <div>
+      <button id="clickme">Click Me</button>
+    </div>
+
+    <script>
+      // debounce(fn, delay) returns a new function that delays calling fn until
+      // delay milliseconds have passed since the last invocation.
+      // This is useful for events that fire repeatedly, such as click, scroll,
+      // or input events.
+      function debounce(fn, delay) {
+        let timerId;
+
+        return function (...args) {
+          // Preserve the current this value so fn receives the same receiver.
+          const context = this;
+
+          // Cancel any previous pending call before scheduling the next one.
+          clearTimeout(timerId);
+
+          // Schedule fn with the latest arguments and context.
+          timerId = setTimeout(() => fn.apply(context, args), delay);
+        };
+      }
+
+      const btn = document.getElementById("clickme");
+
+      // The click handler is debounced: repeated clicks within 3 seconds
+      // will only execute the callback once, after the last click.
+      btn.addEventListener(
+        "click",
+        debounce(() => {
+          console.log("click");
+        }, 3000),
+      );
+    </script>
+  </body>
+</html>

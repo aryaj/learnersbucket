@@ -1,0 +1,87 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Publisher-Subscriber (Observable Pattern)</title>
+  </head>
+  <body>
+    <h1>Publisher-Subscriber (Observable Pattern)</h1>
+    <p>This example implements a simple observable pattern in JavaScript.</p>
+    <p>The observable maintains a list of subscribers and notifies them when new data is emitted.</p>
+    <p>Each subscription returns an <code>unsubscribe</code> method to remove the listener later.</p>
+    <script>
+      /**
+       * Observable constructor for a simple publisher-subscriber model.
+       *
+       * The observable keeps an internal list of observers. Subscribers can register
+       * callbacks using <code>subscribe</code>, and the observable can broadcast values
+       * to all subscribers using <code>notify</code>.
+       */
+      function Observable() {
+        this.observers = [];
+
+        /**
+         * Subscribe a callback to the observable.
+         *
+         * @param {Function} callback - The function to call when data is emitted.
+         * @returns {{unsubscribe: Function}} A subscription object.
+         */
+        this.subscribe = (callback) => {
+          if (typeof callback !== 'function') {
+            throw new Error('callback should be a function');
+          }
+
+          const observer = { callback };
+          this.observers.push(observer);
+
+          return {
+            /**
+             * Remove this subscriber from the observable.
+             */
+            unsubscribe: () => {
+              const index = this.observers.indexOf(observer);
+              if (index > -1) {
+                this.observers.splice(index, 1);
+              }
+            },
+          };
+        };
+
+        /**
+         * Notify all observers with the provided values.
+         *
+         * @param {...*} data - Any number of values to pass to subscribers.
+         */
+        this.notify = (...data) => {
+          this.observers.forEach((observer) => {
+            try {
+              observer.callback(...data);
+            } catch (err) {
+              console.error('Error while invoking callback', err);
+            }
+          });
+        };
+      }
+
+      const observable = new Observable();
+
+      /**
+       * Subscribe a listener to the observable.
+       * The returned subscription object only supports unsubscribe.
+       */
+      const subscribe1 = observable.subscribe((data) => {
+        console.log('Received', data);
+      });
+
+      // Emit the first value. The subscriber receives it.
+      observable.notify('Notify');
+
+      // Remove the subscriber.
+      subscribe1.unsubscribe();
+
+      // Emit again after unsubscribe. No subscriber will receive this.
+      observable.notify('Hello again');
+    </script>
+  </body>
+</html>
