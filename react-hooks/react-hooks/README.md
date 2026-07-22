@@ -2,6 +2,9 @@
 
 This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
 
+This fork includes a small gallery of custom React hooks (demos and implementations) under `src/hooks` and `src/components`.
+Open the app and use the sidebar to explore examples like `useLocalStorage`, `useDebounce`, `useToggle`, and `useFetch`.
+
 ## Available Scripts
 
 In the project directory, you can run:

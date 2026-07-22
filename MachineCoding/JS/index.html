@@ -1,0 +1,219 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>MachineCoding JS Examples</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Fira+Code:wght@400;500&display=swap" rel="stylesheet" />
+    <style>
+      *{box-sizing:border-box;margin:0;padding:0}
+      body{font-family:Inter,Arial,sans-serif;background:#f6f8fa;color:#0f172a;min-height:100vh;display:flex}
+      .sidebar{width:320px;background:#fff;padding:18px;height:100vh;overflow:auto;border-right:1px solid #e6eef7}
+      .sidebar-header h1{font-size:1.25rem;margin-bottom:4px}
+      .sidebar-header p{font-size:0.85rem;color:#64748b}
+      .question-list{padding:8px}
+      .question-item{padding:12px;border-radius:8px;cursor:pointer;margin-bottom:8px;background:#fbfdff;border:1px solid #e6eef7}
+      .question-item:hover{background:#f1f6ff}
+      .question-item.active{background:linear-gradient(135deg,rgba(59,130,246,0.08),rgba(139,92,246,0.06));border-color:rgba(59,130,246,0.12)}
+      .main-content{flex:1;display:flex;flex-direction:column}
+      .panel-header{padding:12px 20px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid #f1f5f9}
+      pre{padding:20px;font-family:'Fira Code',monospace;background:#fff;border:1px solid #e6eef7;border-radius:8px;white-space:pre-wrap;color:#0f172a;overflow-x:auto}
+      .output-content{flex:1;overflow:auto;padding:16px 20px;background:#fff;border:1px solid #e6eef7;border-radius:8px;margin-top:12px}
+      .run-btn{padding:8px 14px;background:#2563eb;color:#fff;border:none;border-radius:8px;cursor:pointer}
+      .no-output{color:#64748b}
+      .preview-frame{width:100%;height:420px;border:1px solid #e6eef7;border-radius:8px;margin-top:16px;background:#fff}
+      .section-title{font-size:0.95rem;color:#475569;margin-bottom:10px}
+      .meta{font-size:0.9rem;color:#64748b;margin-top:4px}
+    </style>
+  </head>
+  <body>
+    <aside class="sidebar">
+      <div class="sidebar-header">
+        <h1>📚 MachineCoding JS</h1>
+        <p>Browse JS examples in this folder</p>
+      </div>
+      <div class="question-list" id="questionList"></div>
+    </aside>
+
+    <main class="main-content">
+      <div class="panel-header">
+        <div>
+          <h2 id="fileName">Select an example</h2>
+          <div class="meta" id="fileDesc">Click on an example from the sidebar to preview it.</div>
+        </div>
+        <button class="run-btn" onclick="runDemo()">▶ Run Demo</button>
+      </div>
+      <div style="padding:20px;display:grid;grid-template-columns:1fr;gap:20px;">
+        <section>
+          <div class="section-title">Code Preview</div>
+          <pre id="codeDisplay">Select a file to preview its script.</pre>
+        </section>
+        <section>
+          <div class="section-title">Live Demo</div>
+          <iframe id="previewFrame" class="preview-frame" title="Preview"></iframe>
+        </section>
+      </div>
+    </main>
+
+    <script>
+      const questions = [
+        {
+          id: 0,
+          name: 'Cached API Call',
+          file: 'CachedApiCall.html',
+          desc: 'Cache API responses with configurable TTL to avoid redundant network calls.',
+        },
+        {
+          id: 1,
+          name: 'Custom Cookie',
+          file: 'CustomCookie.html',
+          desc: 'Demonstrates setting and reading cookies in the browser.',
+        },
+        {
+          id: 2,
+          name: 'Search With Autosuggestions',
+          file: 'SearchWithAutosuggestions.html',
+          desc: 'Search box with API autosuggestions and live preview.',
+        },
+        {
+          id: 3,
+          name: 'Reduce Function Example',
+          file: 'ReduceFunction.html',
+          desc: 'Demonstrates sum, flatten, and count patterns using reduce.',
+        },
+        {
+          id: 4,
+          name: 'Capture Focused Product',
+          file: 'CaptureFocusedProduct.html',
+          desc: 'Render a scrollable set of product cards and highlight the focused card on click.',
+        },
+        {
+          id: 5,
+          name: 'Async Callback Queue (Uber)',
+          file: 'ProcessAsyncCallbackQueueUber.html',
+          desc: 'Configurable async task queue with concurrency and queue limits.',
+        },
+        {
+          id: 6,
+          name: 'Fetch with Timeout',
+          file: 'FetchWithTimeout.html',
+          desc: 'Helper to abort fetch requests that exceed a given timeout.',
+        },
+        {
+          id: 7,
+          name: 'Async Callback Queue (Original)',
+          file: 'ProcessAsyncCallbackQueue.html',
+          desc: 'Original interview-style implementation with fixed limits (2 concurrent, 6 queue).',
+        },
+        {
+          id: 8,
+          name: 'DOM Elements With Given Property',
+          file: 'DomElementsWithGivenProperty.html',
+          desc: 'Placeholder page for implementing the DOM elements with given property solution.',
+        },
+        {
+          id: 9,
+          name: 'Custom ReactDom.Render',
+          file: 'CustomReactDomRender.html',
+          desc: 'Implement a custom ReactDOM.render function to render React-like components to the DOM.',
+        },
+        {
+          id: 10,
+          name: 'Method Chaining',
+          file: 'MethodChaining.html',
+          desc: 'Design a chainable API where each method returns the same instance for fluent calls.',
+        },
+        {
+          id: 11,
+          name: 'Animate Progress Bar',
+          file: 'AnimateProgressBar.html',
+          desc: 'Build and animate a progress bar with start/reset controls and configurable behavior.',
+        },
+        {
+          id: 12,
+          name: 'Retry Promise N Times',
+          file: 'RetryPromiseNTimes.html',
+          desc: 'Implement retry logic for a promise-returning function with a maximum retry count.',
+        },
+        {
+          id: 13,
+          name: 'Get Object Value From String Path',
+          file: 'GetObjectValueFromStringPath.html',
+          desc: 'Read nested object values safely using dot/bracket path strings with optional fallback.',
+        },
+        {
+          id: 14,
+          name: 'Filter Nested Object',
+          file: 'FilterNestedObject.html',
+          desc: 'Recursively filter nested objects/arrays while preserving desired structure.',
+        },
+        {
+          id: 15,
+          name: 'Piping 1',
+          file: 'Piping1.html',
+          desc: 'Create a piping utility that chains functions together, passing output as input to the next.',
+        },
+        {
+          id: 16,
+          name: 'Mutual Friends',
+          file: 'MutualFriends.html',
+          desc: 'Find common friends between two users efficiently using set-based lookups.',
+        },
+        {
+          id: 17,
+          name: 'Polyfill-getElementByClassname',
+          file: 'Polyfill-getElementByClassname.html',
+          desc: 'Build a polyfill for class-based DOM lookup without using native getElementsByClassName.',
+        },
+      ];
+
+      let currentIndex = null;
+      let currentCode = null;
+
+      function initSidebar() {
+        const list = document.getElementById('questionList');
+        list.innerHTML = questions
+          .map(
+            (q, idx) =>
+              `<div class="question-item" onclick="loadQuestion(${idx})"><h3>${q.name}</h3><p style="font-size:12px;color:#64748b">${q.desc}</p></div>`,
+          )
+          .join('');
+      }
+
+      function loadQuestion(index) {
+        currentIndex = index;
+        const q = questions[index];
+        document.getElementById('fileName').textContent = q.name;
+        document.getElementById('fileDesc').textContent = q.desc;
+        document.querySelectorAll('.question-item').forEach((el, i) => el.classList.toggle('active', i === index));
+        document.getElementById('previewFrame').src = q.file;
+        fetch(q.file)
+          .then((r) => (r.ok ? r.text() : Promise.reject(r.status)))
+          .then((html) => {
+            const doc = new DOMParser().parseFromString(html, 'text/html');
+            const script = Array.from(doc.querySelectorAll('script')).find((s) => !s.src && s.textContent.trim());
+            currentCode = script ? script.textContent.trim() : '// No inline script found in this file.';
+            document.getElementById('codeDisplay').textContent = currentCode;
+          })
+          .catch(() => {
+            currentCode = null;
+            document.getElementById('codeDisplay').textContent = 'Could not load file preview.';
+          });
+      }
+
+      function runDemo() {
+        if (currentIndex === null) {
+          alert('Please select an example first.');
+          return;
+        }
+        const q = questions[currentIndex];
+        const frame = document.getElementById('previewFrame');
+        frame.contentWindow.location.reload();
+      }
+
+      initSidebar();
+    </script>
+  </body>
+</html>

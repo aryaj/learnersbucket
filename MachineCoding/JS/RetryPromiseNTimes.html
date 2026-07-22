@@ -1,0 +1,199 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Retry Promise N Times</title>
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        margin: 0;
+        padding: 24px;
+        background: #f5f7fb;
+        color: #111827;
+      }
+      .container {
+        max-width: 960px;
+        margin: 0 auto;
+      }
+      .card {
+        background: #ffffff;
+        border: 1px solid #d1d5db;
+        border-radius: 14px;
+        padding: 24px;
+        margin-bottom: 24px;
+        box-shadow: 0 10px 30px rgba(15, 23, 42, 0.06);
+      }
+      h1,
+      h2 {
+        margin-top: 0;
+      }
+      p,
+      li {
+        line-height: 1.7;
+      }
+      pre {
+        background: #f8fafc;
+        border: 1px solid #e2e8f0;
+        border-radius: 12px;
+        padding: 16px;
+        overflow-x: auto;
+      }
+      code {
+        background: #eef2ff;
+        padding: 2px 6px;
+        border-radius: 6px;
+        font-family: Consolas, Monaco, monospace;
+      }
+      button {
+        background: #2563eb;
+        color: white;
+        border: none;
+        padding: 10px 16px;
+        border-radius: 10px;
+        cursor: pointer;
+        font-size: 0.95rem;
+      }
+      .result {
+        margin-top: 16px;
+        padding: 14px;
+        border-radius: 12px;
+        background: #eff6ff;
+        border: 1px solid #dbeafe;
+        white-space: pre-wrap;
+        min-height: 120px;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <div class="card">
+        <h1>Retry Promise N Times</h1>
+        <p>
+          This page is prepared for implementing retry logic where a
+          promise-returning function is attempted up to a maximum number of
+          retries before failing.
+        </p>
+      </div>
+
+      <div class="card">
+        <h2>Problem Summary</h2>
+        <ul>
+          <li>
+            Accept a promise-producing function and retry count <code>n</code>.
+          </li>
+          <li>Retry only when promise rejects.</li>
+          <li>Stop immediately if the promise resolves.</li>
+          <li>Reject with final error after all retries are exhausted.</li>
+          <li>Optionally support delay/backoff between attempts.</li>
+        </ul>
+      </div>
+
+      <div class="card">
+        <h2>Solution Approach</h2>
+        <pre><code>// 1) Validate inputs (fn should be function, retries should be >= 0).
+    // 2) Attempt fn() once.
+    // 3) If resolved, return immediately.
+    // 4) If rejected and retries remain, call recursively with retries - 1.
+    // 5) If retries are exhausted, reject with finalError (or last caught error).
+    // 6) Total attempts = retries + 1 (initial attempt + retry attempts).</code></pre>
+      </div>
+
+      <div class="card">
+        <h2>Implementation Notes</h2>
+        <pre><code>// API shape:
+    // retryPromiseNTimes(fn, retries, finalError?) => Promise
+    //
+    // - fn: function returning a Promise
+    // - retries: number of retry attempts after first failure
+    // - finalError: optional error/message returned after all attempts fail</code></pre>
+      </div>
+
+      <div class="card">
+        <h2>Live Demo Placeholder</h2>
+        <button id="runBtn">Run demo</button>
+        <div id="resultBox" class="result">
+          Add your solution logic, then click Run demo.
+        </div>
+      </div>
+    </div>
+
+    <script>
+      // Revision notes:
+      // 1) fn() must be invoked fresh on every attempt.
+      // 2) retries = extra attempts after the first call.
+      // 3) Total attempts are retries + 1.
+      // 4) Preserve deterministic stopping when retries become 0.
+
+      const resultBox = document.getElementById("resultBox");
+      const runBtn = document.getElementById("runBtn");
+
+      function log(message) {
+        resultBox.textContent += message + "\n";
+      }
+
+      // Demo helper: returns a function that fails N times, then succeeds.
+      // Useful to test retry flow deterministically.
+      const createFlakyRequest = (failuresBeforeSuccess) => {
+        let count = 1;
+        return () => {
+          console.log("attempt", count);
+          return new Promise((resolve, reject) => {
+            if (count <= failuresBeforeSuccess) {
+              count++;
+              reject(new Error("API failed"));
+            } else {
+              resolve("API passed");
+            }
+          });
+        };
+      };
+
+      // STEP 1: Main retry wrapper.
+      // - fn: promise-producing function
+      // - retries: retry count after first failed attempt
+      // - finalError: optional fallback error for exhausted retries
+      const retryPromiseNTimes = async (fn, retries, finalError) => {
+        // STEP 2: Input validation for predictable behavior.
+        if (typeof fn !== "function") {
+          throw new TypeError("fn must be a function that returns a Promise");
+        }
+
+        if (!Number.isInteger(retries) || retries < 0) {
+          throw new TypeError("retries must be a non-negative integer");
+        }
+
+        // STEP 3: Try current attempt.
+        try {
+          const response = await fn();
+          return response;
+        } catch (err) {
+          // STEP 4: If retries are exhausted, fail deterministically.
+          if (retries === 0) {
+            throw finalError ?? err;
+          }
+
+          // STEP 5: Retry with one less remaining retry.
+          return retryPromiseNTimes(fn, retries - 1, finalError);
+        }
+      };
+
+      runBtn.addEventListener("click", () => {
+        resultBox.textContent = "";
+        log("Starting retry demo...");
+        log("Setup: fail first 5 attempts, retries = 4");
+        log("Expected: final rejection after 5 total attempts");
+
+        const request = createFlakyRequest(5);
+
+        retryPromiseNTimes(request, 4, new Error("Max retry limit reached"))
+          .then((val) => {
+            log("Success: " + val);
+          })
+          .catch((err) => {
+            log("Failed: " + (err?.message || err));
+          });
+      });
+    </script>
+  </body>
+</html>

@@ -1,0 +1,260 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Method Chaining</title>
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        margin: 0;
+        padding: 24px;
+        background: #f5f7fb;
+        color: #111827;
+      }
+      .container {
+        max-width: 960px;
+        margin: 0 auto;
+      }
+      .card {
+        background: #ffffff;
+        border: 1px solid #d1d5db;
+        border-radius: 14px;
+        padding: 24px;
+        margin-bottom: 24px;
+        box-shadow: 0 10px 30px rgba(15, 23, 42, 0.06);
+      }
+      h1,
+      h2 {
+        margin-top: 0;
+      }
+      p,
+      li {
+        line-height: 1.7;
+      }
+      pre {
+        background: #f8fafc;
+        border: 1px solid #e2e8f0;
+        border-radius: 12px;
+        padding: 16px;
+        overflow-x: auto;
+      }
+      code {
+        background: #eef2ff;
+        padding: 2px 6px;
+        border-radius: 6px;
+        font-family: Consolas, Monaco, monospace;
+      }
+      button {
+        background: #2563eb;
+        color: white;
+        border: none;
+        padding: 10px 16px;
+        border-radius: 10px;
+        cursor: pointer;
+        font-size: 0.95rem;
+      }
+      .result {
+        margin-top: 16px;
+        padding: 14px;
+        border-radius: 12px;
+        background: #eff6ff;
+        border: 1px solid #dbeafe;
+        white-space: pre-wrap;
+        min-height: 120px;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <div class="card">
+        <h1>Method Chaining</h1>
+        <p>
+          This page is prepared for a method chaining machine-coding question.
+          The goal is to design an API where multiple method calls can be
+          connected in a single fluent expression.
+        </p>
+      </div>
+
+      <div class="card">
+        <h2>Problem Summary</h2>
+        <ul>
+          <li>Create an object/class with multiple operations.</li>
+          <li>Allow chained calls like <code>obj.a().b().c()</code>.</li>
+          <li>Each chainable method should return the same instance.</li>
+          <li>Keep internal state consistent across each chained step.</li>
+          <li>Provide a final method to read the computed result/state.</li>
+        </ul>
+      </div>
+
+      <div class="card">
+        <h2>Approach For Revision</h2>
+        <ol>
+          <li>
+            Define a class/object that stores current state (number, string,
+            array, etc.).
+          </li>
+          <li>
+            Implement operation methods (for example: add, subtract, multiply)
+            that update state.
+          </li>
+          <li>
+            Return <code>this</code> from each operation so the chain can
+            continue.
+          </li>
+          <li>
+            Add a terminal method (for example <code>value()</code>) to return
+            the final output.
+          </li>
+          <li>
+            Decide validation behavior for invalid inputs
+            (ignore/throw/default).
+          </li>
+        </ol>
+      </div>
+
+      <div class="card">
+        <h2>Implementation Template</h2>
+        <pre><code>// Factory that returns a chainable API object.
+function computeAmount(initialValue = 0) {
+  let total = sanitizeNumber(initialValue);
+
+  const api = {
+    // Add lakh amount and return same object to continue chain.
+    lakh(value = 0) {
+      total += sanitizeNumber(value) * 100000;
+      return api;
+    },
+
+    // Alias kept for compatibility with common spelling in problems.
+    lacs(value = 0) {
+      return api.lakh(value);
+    },
+
+    // Add crore amount and return same object.
+    crore(value = 0) {
+      total += sanitizeNumber(value) * 10000000;
+      return api;
+    },
+
+    // Add thousand amount and return same object.
+    thousand(value = 0) {
+      total += sanitizeNumber(value) * 1000;
+      return api;
+    },
+
+    // Read final amount (terminal method).
+    value() {
+      return total;
+    },
+  };
+
+  return api;
+}
+
+function sanitizeNumber(input) {
+  const parsed = Number(input);
+  if (!Number.isFinite(parsed)) {
+    throw new Error('Amount must be a finite number');
+  }
+  return parsed;
+}
+
+// Example:
+// const result = computeAmount().lacs(15).crore(2).thousand(45).value();</code></pre>
+      </div>
+
+      <div class="card">
+        <h2>Live Demo Placeholder</h2>
+        <p>
+          Demo below runs the current implementation and prints each step result.
+        </p>
+        <button id="runBtn">Run demo</button>
+        <div id="resultBox" class="result">
+          Click Run demo to test chain behavior.
+        </div>
+      </div>
+    </div>
+
+    <script>
+      // Revision notes:
+      // 1) Chaining works because every operation returns the same API object.
+      // 2) The closure variable `total` stores state across chained calls.
+      // 3) value() is terminal because it returns number, not API object.
+      // 4) sanitizeNumber() avoids unexpected behavior from invalid inputs.
+
+      const resultBox = document.getElementById("resultBox");
+      const runBtn = document.getElementById("runBtn");
+
+      function log(message) {
+        resultBox.textContent += message + "\n";
+      }
+
+      // STEP 1: Convert and validate incoming values.
+      // This ensures all methods work with predictable numeric input.
+      function sanitizeNumber(input) {
+        const parsed = Number(input);
+        if (!Number.isFinite(parsed)) {
+          throw new Error("Amount must be a finite number");
+        }
+        return parsed;
+      }
+
+      // STEP 2: Build a factory that returns a chainable API.
+      // Closure keeps `total` private and persistent across method calls.
+      function computeAmount(initialValue = 0) {
+        let total = sanitizeNumber(initialValue);
+
+        // STEP 3: Define chainable operations.
+        // Every operation updates total and returns `api` for fluent chaining.
+        const api = {
+          lakh(num = 0) {
+            total += sanitizeNumber(num) * 100000;
+            return api;
+          },
+          // Alias to support both lakh/lacs naming.
+          lacs(num = 0) {
+            return api.lakh(num);
+          },
+          crore(num = 0) {
+            total += sanitizeNumber(num) * 10000000;
+            return api;
+          },
+          thousand(num = 0) {
+            total += sanitizeNumber(num) * 1000;
+            return api;
+          },
+
+          // STEP 4: Terminal method returns computed result.
+          value() {
+            return total;
+          },
+        };
+
+        return api;
+      }
+
+      runBtn.addEventListener("click", () => {
+        resultBox.textContent = "";
+
+        log("Running method chaining demo...");
+        log("Expression: computeAmount().lacs(15).crore(5).crore(2).lacs(20).thousand(45).crore(7).value()");
+
+        try {
+          const result = computeAmount()
+            .lacs(15)
+            .crore(5)
+            .crore(2)
+            .lacs(20)
+            .thousand(45)
+            .crore(7)
+            .value();
+
+          log("Final value: " + result);
+        } catch (error) {
+          log("Error: " + error.message);
+        }
+      });
+    </script>
+  </body>
+</html>

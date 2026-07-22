@@ -1,0 +1,268 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>JavaScript Questions - Revision Hub</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+        }
+
+        .header {
+            text-align: center;
+            color: white;
+            margin-bottom: 40px;
+        }
+
+        .header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 8px;
+        }
+
+        .header p {
+            font-size: 1rem;
+            opacity: 0.9;
+        }
+
+        .questions-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 20px;
+        }
+
+        .question-card {
+            background: white;
+            border-radius: 10px;
+            padding: 20px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+            transition: all 0.3s ease;
+            cursor: pointer;
+            text-decoration: none;
+            color: inherit;
+            display: flex;
+            flex-direction: column;
+            border-left: 5px solid #667eea;
+        }
+
+        .question-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 40px rgba(0, 0, 0, 0.3);
+        }
+
+        .question-card.medium {
+            border-left-color: #f59e0b;
+        }
+
+        .question-card.hard {
+            border-left-color: #ef4444;
+        }
+
+        .question-number {
+            font-size: 0.75rem;
+            color: #999;
+            margin-bottom: 8px;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+
+        .question-name {
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 8px;
+        }
+
+        .question-desc {
+            font-size: 0.9rem;
+            color: #666;
+            margin-bottom: 12px;
+            flex-grow: 1;
+        }
+
+        .question-difficulty {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            width: fit-content;
+        }
+
+        .difficulty-easy {
+            background: #d1fae5;
+            color: #065f46;
+        }
+
+        .difficulty-medium {
+            background: #fef3c7;
+            color: #92400e;
+        }
+
+        .difficulty-hard {
+            background: #fee2e2;
+            color: #991b1b;
+        }
+
+        .search-box {
+            margin-bottom: 30px;
+        }
+
+        .search-box input {
+            width: 100%;
+            padding: 12px 16px;
+            border: none;
+            border-radius: 8px;
+            font-size: 1rem;
+            background: rgba(255, 255, 255, 0.95);
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+        }
+
+        .search-box input::placeholder {
+            color: #999;
+        }
+
+        .stats {
+            background: rgba(255, 255, 255, 0.15);
+            color: white;
+            padding: 15px 20px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            display: flex;
+            gap: 30px;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        .stat-item {
+            text-align: center;
+        }
+
+        .stat-number {
+            font-size: 1.5rem;
+            font-weight: bold;
+        }
+
+        .stat-label {
+            font-size: 0.9rem;
+            opacity: 0.9;
+        }
+
+        .no-results {
+            text-align: center;
+            color: white;
+            padding: 40px;
+            font-size: 1.1rem;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>📚 JavaScript Questions</h1>
+            <p>Organize and revise your solutions</p>
+        </div>
+
+        <div class="stats">
+            <div class="stat-item">
+                <div class="stat-number">17</div>
+                <div class="stat-label">Total Questions</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-number">7</div>
+                <div class="stat-label">Easy</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-number">9</div>
+                <div class="stat-label">Medium</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-number">1</div>
+                <div class="stat-label">Hard</div>
+            </div>
+        </div>
+
+        <div class="search-box">
+            <input type="text" id="searchInput" placeholder="🔍 Search questions...">
+        </div>
+
+        <div class="questions-grid" id="questionsGrid"></div>
+        <div class="no-results" id="noResults" style="display: none;">
+            No questions found. Try a different search.
+        </div>
+    </div>
+
+    <script>
+        const questions = [
+            { id: 1, name: "Curry-1", file: "Curry-1.html", desc: "Function currying with closure", difficulty: "easy" },
+            { id: 2, name: "Debounce", file: "Debounce.html", desc: "Rate limiting function calls", difficulty: "easy" },
+            { id: 3, name: "FlattenArray", file: "FlattenArray.html", desc: "Flatten nested arrays recursively", difficulty: "easy" },
+            { id: 4, name: "HexToRGB", file: "HexToRGB.html", desc: "Convert hex color to RGB", difficulty: "easy" },
+            { id: 5, name: "MethodChaining-1", file: "MethodChaining-1.html", desc: "Method chaining pattern", difficulty: "easy" },
+            { id: 6, name: "Pipe", file: "Pipe.html", desc: "Function composition pattern", difficulty: "easy" },
+            { id: 7, name: "ArrayIterator", file: "ArrayIterator.html", desc: "Manual array iterator with next/done", difficulty: "easy" },
+            { id: 8, name: "Throttling", file: "Throttling.html", desc: "Rate limiting with intervals", difficulty: "medium" },
+            { id: 9, name: "ToggleFunction", file: "ToggleFunction.html", desc: "State toggle utility", difficulty: "medium" },
+            { id: 10, name: "SamplerFunction", file: "SamplerFunction.html", desc: "Sampling pattern implementation", difficulty: "medium" },
+            { id: 11, name: "Publisher-Subscriber", file: "Publisher-Subcriber(ObservablePatter).html", desc: "Observer pattern implementation", difficulty: "medium" },
+            { id: 12, name: "RemoveCycleFromObject", file: "RemoveCycleFromObject.html", desc: "Handle circular references", difficulty: "medium" },
+            { id: 13, name: "MemoizeFunction", file: "MemoizeFunction.html", desc: "Memoize function implementation", difficulty: "medium" },
+            { id: 14, name: "Polyfill-ArrayFilter", file: "Polyfill-ArrayFilter.html", desc: "Array.filter polyfill", difficulty: "medium" },
+            { id: 15, name: "Polyfill-groupBy", file: "Polyfill-groupBy().html", desc: "Group values by key", difficulty: "medium" },
+            { id: 16, name: "Polyfill-Promise.All", file: "Polyfill-Promise.All.html", desc: "Promise.all polyfill", difficulty: "medium" },
+            { id: 17, name: "clearAllTimeOut", file: "clearAllTimeOut.html", desc: "Clear all active timeouts", difficulty: "hard" },
+        ];
+
+
+        const grid = document.getElementById('questionsGrid');
+        const searchInput = document.getElementById('searchInput');
+        const noResults = document.getElementById('noResults');
+
+        function renderQuestions(filtered = questions) {
+            grid.innerHTML = '';
+            noResults.style.display = filtered.length === 0 ? 'block' : 'none';
+
+            filtered.forEach((q, idx) => {
+                const card = document.createElement('a');
+                card.href = q.file;
+                card.className = `question-card ${q.difficulty}`;
+                card.innerHTML = `
+                    <div class="question-number">Question ${q.id}</div>
+                    <div class="question-name">${q.name}</div>
+                    <div class="question-desc">${q.desc}</div>
+                    <div class="question-difficulty difficulty-${q.difficulty}">
+                        ${q.difficulty.toUpperCase()}
+                    </div>
+                `;
+                grid.appendChild(card);
+            });
+        }
+
+        searchInput.addEventListener('input', (e) => {
+            const search = e.target.value.toLowerCase();
+            const filtered = questions.filter(q => 
+                q.name.toLowerCase().includes(search) || 
+                q.desc.toLowerCase().includes(search)
+            );
+            renderQuestions(filtered);
+        });
+
+        // Initial render
+        renderQuestions();
+    </script>
+</body>
+</html>

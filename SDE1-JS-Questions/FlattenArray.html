@@ -4,19 +4,38 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Flatten Array</title>
+    <style>
+      body { font-family: Arial, sans-serif; margin: 24px; background: #f4f6fb; color: #111827; }
+      main { max-width: 920px; margin: 0 auto; background: white; border-radius: 14px; padding: 24px; box-shadow: 0 18px 40px rgba(15, 23, 42, 0.08); }
+      h1 { margin-bottom: 0.25rem; font-size: 2rem; }
+      p { margin: 0.75rem 0; }
+      pre { background: #111827; color: #e2e8f0; padding: 18px; border-radius: 12px; overflow-x: auto; }
+      code { color: #a5f3fc; }
+      .result { background: #f8fafc; border: 1px solid #cbd5e1; border-radius: 10px; padding: 16px; }
+      .result p { margin: 0.5rem 0; }
+    </style>
   </head>
   <body>
-    <h1>Flatten Array</h1>
-    <p>This example flattens a deeply nested array into a single-level array.</p>
-    <p>It demonstrates a recursive <code>flattenArray</code> implementation using <code>Array.prototype.reduce</code>.</p>
-    <script>
-      /**
-       * Flatten a nested array recursively.
-       *
-       * @param {Array} arr - The array to flatten.
-       * @returns {Array} A new array with all nested values flattened.
-       */
-      function flattenArray(arr) {
+    <main>
+      <h1>Flatten Array</h1>
+      <p>This document explains a recursive implementation that flattens nested arrays into a single-level array.</p>
+      <section>
+        <h2>Implementation</h2>
+        <pre><code>function flattenArray(arr) {
+  return arr.reduce((result, toFlatten) => {
+    return result.concat(
+      Array.isArray(toFlatten) ? flattenArray(toFlatten) : toFlatten,
+    );
+  }, []);
+}</code></pre>
+      </section>
+      <section>
+        <h2>Example output</h2>
+        <div class="result" id="result"></div>
+      </section>
+    </main>
+    <script src="common.js"></script>
+    <script>      function flattenArray(arr) {
         return arr.reduce((result, toFlatten) => {
           return result.concat(
             Array.isArray(toFlatten) ? flattenArray(toFlatten) : toFlatten,
@@ -24,10 +43,10 @@
         }, []);
       }
 
-      // Example usage
       const nested = [1, [2, 3], [4, [5, 6]], 7, [8, [9, [10]]]];
-      console.log(nested.flat(Infinity));
-      console.log(flattenArray(nested));
+      safeLog(`Original: ${JSON.stringify(nested)}`);
+      safeLog(`flat(Infinity): ${JSON.stringify(nested.flat(Infinity))}`);
+      safeLog(`flattenArray result: ${JSON.stringify(flattenArray(nested))}`);
     </script>
   </body>
 </html>

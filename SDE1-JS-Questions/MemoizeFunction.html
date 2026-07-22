@@ -1,0 +1,195 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Memoize Function</title>
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        line-height: 1.6;
+        margin: 24px;
+        background: #f4f6fb;
+        color: #1f2937;
+      }
+      main {
+        max-width: 900px;
+        margin: 0 auto;
+      }
+      h1 {
+        margin-bottom: 0.25rem;
+        font-size: 2rem;
+      }
+      p {
+        margin: 0.75rem 0;
+      }
+      pre {
+        background: #111827;
+        color: #d1d5db;
+        padding: 16px;
+        border-radius: 12px;
+        overflow-x: auto;
+      }
+      code {
+        color: #f8fafc;
+      }
+      .note {
+        background: #e0f2fe;
+        border-left: 4px solid #38bdf8;
+        padding: 12px;
+        margin: 1rem 0;
+      }
+      .result {
+        background: #ffffff;
+        border: 1px solid #cbd5e1;
+        padding: 16px;
+        border-radius: 10px;
+      }
+      .result p {
+        margin: 0.5rem 0;
+      }
+    </style>
+  </head>
+  <body>
+    <main>
+      <h1>Memoize Function</h1>
+      <p>
+        Memoization is a performance optimization technique that caches the
+        result of a function call so that repeating the same call returns the
+        cached value instead of recomputing it.
+      </p>
+      <section>
+        <h2>How this implementation works</h2>
+        <ol>
+          <li>
+            <strong>Wrapping function:</strong>
+            <code>memoizeFunc(callbackFunc)</code> returns a new function that
+            remembers results.
+          </li>
+          <li>
+            <strong>Cache storage:</strong> It keeps a plain object called
+            <code>cache</code> to store previous results.
+          </li>
+          <li>
+            <strong>Cache key:</strong> The wrapper creates a key from the call
+            arguments using <code>JSON.stringify(arguments)</code>.
+          </li>
+          <li>
+            <strong>First call:</strong> If the key does not exist, it runs the
+            original function and saves the output.
+          </li>
+          <li>
+            <strong>Subsequent calls:</strong> If the same arguments are used
+            again, it returns the cached result instantly.
+          </li>
+        </ol>
+      </section>
+      <div class="note">
+        <strong>Important:</strong> Memoization helps only for repeated calls
+        with the same inputs. The first call still runs the full expensive
+        computation.
+      </div>
+      <section>
+        <h2>Implementation</h2>
+        <pre>
+            <code>
+                function memoizeFunc(callbackFunc) {
+                    const cache = {};
+
+                    return function (...args) {
+                        const key = JSON.stringify(args);
+
+                        // If the computed result is already in cache, return it immediately.
+                        if (key in cache) {
+                        return cache[key];
+                        }
+
+                        // Otherwise, compute the result and store it for future calls.
+                        const result = callbackFunc(...args);
+                        cache[key] = result;
+                        return result;
+            };
+            }
+           </code>
+        </pre>
+      </section>
+      <section>
+        <h2>Example with a slow function</h2>
+        <p>
+          The example below simulates a slow computation that loops for a large
+          number of iterations. The first call with a specific argument takes a
+          long time, but later calls with the same argument return instantly.
+        </p>
+        <div class="result" id="result"></div>
+      </section>
+      <section>
+        <h2>Why the UI can freeze</h2>
+        <p>
+          The slow function runs on the browser's main thread. While it is
+          computing, the browser cannot process user input, render updates, or
+          paint frames. If the computation takes longer than the frame budget
+          (about 16ms at 60Hz), the page feels unresponsive.
+        </p>
+      </section>
+    </main>
+
+    <script>
+      function slowFunction(count = 10000000000) {
+        let sum = 0;
+        for (let i = 0; i < count; i++) {
+          sum += i;
+        }
+        return sum;
+      }
+
+      function memoizeFunc(callbackFunc) {
+        const cache = {};
+
+        return function (...args) {
+          const key = JSON.stringify(args);
+
+          // Use the `in` operator so falsy cached values like 0 are handled correctly.
+          if (key in cache) {
+            return cache[key];
+          }
+
+          const result = callbackFunc(...args);
+          cache[key] = result;
+          return result;
+        };
+      }
+
+      const memoizedSlowFunc = memoizeFunc(slowFunction);
+
+      const results = [
+        { args: [10000000000], note: "first call, expensive compute" },
+        { args: [10000000000], note: "second call, cached result" },
+        { args: [10000000000], note: "third call, cached result" },
+        { args: [20000000000], note: "new argument, expensive compute again" },
+      ];
+
+      const resultContainer = document.getElementById("result");
+      const logResult = (message) => {
+        if (resultContainer) {
+          const paragraph = document.createElement("p");
+          paragraph.textContent = message;
+          resultContainer.appendChild(paragraph);
+          return;
+        }
+
+        // When this script is loaded through index.html, the host page will capture console output.
+        console.log(message);
+      };
+
+      results.forEach((item, index) => {
+        const start = performance.now();
+        const value = memoizedSlowFunc(...item.args);
+        const elapsed = Math.round(performance.now() - start);
+
+        logResult(
+          `Call ${index + 1} (${item.args.join(", ")}): ${value} — ${item.note} — ${elapsed} ms`,
+        );
+      });
+    </script>
+  </body>
+</html>

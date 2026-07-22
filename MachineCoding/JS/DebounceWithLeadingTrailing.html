@@ -1,0 +1,44 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Document</title>
+  </head>
+  <body>
+    <div>
+      <input type="text" id="input" />
+    </div>
+    <script>
+      const onChange = function(e){
+        console.log("e", e);
+        console.log(this);
+        console.log(e.target.value);
+      };
+
+      const debounce = (fn, delay) => {
+        let timerId;
+        return function(...args) {
+            const ctx = this;
+            clearTimeout(timerId);
+            timerId = setTimeout(() => {
+                console.log("args",args)
+                fn.apply(ctx, args);
+            }, delay);
+        };
+      };
+
+      const debouncedOnchange = debounce(onChange, 1000);
+
+      const input = document.getElementById("input");
+      input.addEventListener("keyup", debouncedOnchange);
+
+      function test(...args){
+        console.log(...args);
+      }
+
+    test('a','b','c','d')
+
+    </script>
+  </body>
+</html>

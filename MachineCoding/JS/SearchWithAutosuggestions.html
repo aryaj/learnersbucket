@@ -1,0 +1,189 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Search With Autosuggestions</title>
+  </head>
+  <body>
+    <!--
+      SearchWithAutosuggestions.html
+
+      A simple search demo that fetches autocomplete suggestions from an API.
+      This file contains:
+      1. A search input field.
+      2. A suggestion panel that opens on focus.
+      3. API fetching logic with error handling.
+      4. Race condition protection so stale responses are ignored.
+      5. Click-to-select suggestion behavior.
+    -->
+
+    <style>
+      #search-wrapper {
+        width: 500px;
+        margin: 0 auto;
+      }
+
+      #search {
+        width: 100%;
+        height: 40px;
+        padding: 5px;
+      }
+
+      #suggestion-area {
+        margin-top: 10px;
+        border: 1px solid #eee;
+        min-height: 100px;
+        padding: 5px;
+        display: none;
+      }
+    </style>
+
+    <div id="search-wrapper">
+      <input id="search" type="search" placeholder="Enter your query" />
+      <div id="suggestion-area"></div>
+    </div>
+
+    <script>
+      /**
+       * DOM references
+       * - input: the search field where the user types.
+       * - suggestionArea: container for displaying suggestions.
+       */
+      const input = document.getElementById("search");
+      const suggestionArea = document.getElementById("suggestion-area");
+
+      /**
+       * currentSearchTerm tracks the latest query value.
+       * It helps ignore out-of-order API responses when the user types quickly.
+       */
+      let currentSearchTerm = "";
+
+      /**
+       * onFocus
+       * Show the suggestion panel when the input receives focus.
+       */
+      const onFocus = () => {
+        suggestionArea.style.display = "block";
+      };
+
+      /**
+       * onBlur
+       * Hide suggestions when the user clicks outside the input or suggestion panel.
+       * This ensures the UI closes gracefully when focus moves away.
+       */
+      const onBlur = (e) => {
+        if (e.target === input || e.target === suggestionArea) {
+          return;
+        }
+        suggestionArea.style.display = "none";
+      };
+
+      /**
+       * getSuggestions
+       * Fetches search suggestions from the remote API.
+       * If the response is not OK, returns a structured error object.
+       */
+      const getSuggestions = async (value) => {
+        try {
+          const res = await fetch(
+            `https://demo.dataverse.org/api/search?q=${value}`,
+          );
+          if (!res.ok) {
+            const errorData = await res.json();
+            return {
+              error: errorData.message || `HTTP error! status: ${res.status}`,
+            };
+          }
+          return res.json();
+        } catch (err) {
+          return { error: err.message };
+        }
+      };
+
+      /**
+       * processData
+       * Runs after each keystroke.
+       * - stores the current query
+       * - clears previous suggestions
+       * - fetches new suggestions
+       * - ignores stale responses
+       * - renders a clickable list of results
+       */
+      const processData = async (value) => {
+        currentSearchTerm = value;
+        suggestionArea.innerText = "";
+
+        if (!value) {
+          // If the search field is empty, do not request suggestions.
+          return;
+        }
+
+        try {
+          const res = await getSuggestions(value);
+
+          // Ignore stale API results when the user has typed a new query.
+          if (currentSearchTerm !== value) {
+            return;
+          }
+
+          if (res.error) {
+            throw new Error(res.error);
+          }
+
+          const {
+            data: { items },
+          } = res;
+
+          console.log("res", res);
+          console.log("items", items);
+
+          if (items.length > 0) {
+            const list = document.createElement("ul");
+            items.forEach((element) => {
+              const listItem = document.createElement("li");
+              listItem.style.cursor = "pointer";
+              listItem.innerText = element.name;
+              list.append(listItem);
+            });
+            suggestionArea.innerText = "";
+            suggestionArea.appendChild(list);
+          }
+        } catch (err) {
+          console.log(err.message);
+        }
+      };
+
+      /**
+       * onchange
+       * Called on every keyup event.
+       * Sends the updated search value to processData.
+       */
+      const onchange = (e) => {
+        console.log(e.target.value);
+        const { value } = e.target;
+        processData(value);
+      };
+
+      /**
+       * onClick
+       * Handles clicks inside the suggestion container.
+       * If a suggestion item is clicked, copy its text back to the input.
+       */
+      const onClick = (e) => {
+        if (e.target === suggestionArea) {
+          return;
+        }
+        const text = e.target.innerText;
+        input.value = text;
+        input.focus();
+      };
+
+      // Attach DOM event listeners
+      input.addEventListener("focus", onFocus);
+      window.addEventListener("click", onBlur);
+      input.addEventListener("keyup", onchange);
+      suggestionArea.addEventListener("click", onClick, true);
+    </script>
+  </body>
+</html>

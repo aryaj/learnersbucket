@@ -1,0 +1,221 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Mutual Friends</title>
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        margin: 0;
+        padding: 24px;
+        background: #f5f7fb;
+        color: #111827;
+      }
+      .container {
+        max-width: 960px;
+        margin: 0 auto;
+      }
+      .card {
+        background: #ffffff;
+        border: 1px solid #d1d5db;
+        border-radius: 14px;
+        padding: 24px;
+        margin-bottom: 24px;
+        box-shadow: 0 10px 30px rgba(15, 23, 42, 0.06);
+      }
+      h1,
+      h2 {
+        margin-top: 0;
+      }
+      p,
+      li {
+        line-height: 1.7;
+      }
+      pre {
+        background: #f8fafc;
+        border: 1px solid #e2e8f0;
+        border-radius: 12px;
+        padding: 16px;
+        overflow-x: auto;
+      }
+      code {
+        background: #eef2ff;
+        padding: 2px 6px;
+        border-radius: 6px;
+        font-family: Consolas, Monaco, monospace;
+      }
+      button {
+        background: #2563eb;
+        color: white;
+        border: none;
+        padding: 10px 16px;
+        border-radius: 10px;
+        cursor: pointer;
+        font-size: 0.95rem;
+      }
+      .result {
+        margin-top: 16px;
+        padding: 14px;
+        border-radius: 12px;
+        background: #eff6ff;
+        border: 1px solid #dbeafe;
+        white-space: pre-wrap;
+        min-height: 140px;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <div class="card">
+        <h1>Mutual Friends</h1>
+        <p>
+          Recursively collect all reachable friends from a given person in a
+          friend mapping graph.
+        </p>
+      </div>
+
+      <div class="card">
+        <h2>Problem Summary</h2>
+        <ul>
+          <li>Input: mapping object and one starting person.</li>
+          <li>Each person maps to a list of direct friends.</li>
+          <li>Collect direct + indirect friends recursively.</li>
+          <li>Backtracking merges each child result into parent result.</li>
+          <li>Base case: person has no entry or empty friend list.</li>
+        </ul>
+      </div>
+
+      <div class="card">
+        <h2>Approach (Step By Step)</h2>
+        <pre><code>// STEP 1: Read friendList = mapping[person].
+// STEP 2: If no friendList or empty, return [] (base case).
+// STEP 3: Create finalList with direct friends [...friendList].
+// STEP 4: For each direct friend, recurse and get child list.
+// STEP 5: Backtrack: merge child list into current finalList.
+// STEP 6: Return finalList for this recursion frame.
+//
+// Important:
+// - Each recursion call has its own local finalList.
+// - Backtracking happens right after child call returns.
+// - Parent frame continues from the next line in the loop.</code></pre>
+      </div>
+
+      <div class="card">
+        <h2>Dry Run (a)</h2>
+        <pre><code>// mapping:
+// a -> [b, c]
+// b -> [d, g]
+// d -> [p, q]
+//
+// mutualFriends(mapping, "a")
+// finalList(a) = [b, c]
+//   recurse(b)
+//     finalList(b) = [d, g]
+//       recurse(d) => [p, q]
+//       backtrack merge => [d, g, p, q]
+//       recurse(g) => []
+//     return [d, g, p, q]
+//   backtrack merge into a => [b, c, d, g, p, q]
+//   recurse(c) => []
+// return [b, c, d, g, p, q]</code></pre>
+      </div>
+
+      <div class="card">
+        <h2>Complexity</h2>
+        <ul>
+          <li>Time: O(V + E) in graph terms for reachable nodes/edges.</li>
+          <li>Space: O(H) recursion depth + output storage.</li>
+          <li>Note: Cycles are not handled in current version.</li>
+        </ul>
+      </div>
+
+      <div class="card">
+        <h2>Live Demo</h2>
+        <button id="runBtn">Run demo</button>
+        <div id="resultBox" class="result">
+          Click Run demo to view recursion and backtracking logs.
+        </div>
+      </div>
+    </div>
+
+    <script>
+      // Revision notes:
+      // 1) This implementation collects reachable friends from one person.
+      // 2) It demonstrates recursion + backtracking clearly.
+      // 3) Each recursive frame has its own local finalList.
+      // 4) No visited set is used, so cyclic graphs can recurse forever.
+
+      const resultBox = document.getElementById("resultBox");
+      const runBtn = document.getElementById("runBtn");
+
+      function log(message) {
+        resultBox.textContent += message + "\n";
+      }
+
+      const mapping = {
+        a: ["b", "c"],
+        b: ["d", "g"],
+        d: ["p", "q"],
+        l: ["x", "y"],
+      };
+
+      const mutualFriends = (mapping, person, depth = 0) => {
+        // STEP 0: Create indentation for readable logs by recursion depth.
+        const pad = "  ".repeat(depth);
+        log(pad + "Enter: mutualFriends(" + person + ")");
+
+        // STEP 1: Read direct friends of current person.
+        const friendList = mapping[person];
+
+        // STEP 2: Base case - no friends means no further recursion.
+        if (friendList && friendList.length > 0) {
+          // STEP 3: Create local list for this recursion frame.
+          const finalList = [...friendList];
+          log(pad + "Create finalList for " + person + ": [" + finalList.join(", ") + "]");
+
+          // STEP 4: Visit each direct friend recursively.
+          for (let friend of friendList) {
+            // Go deeper (recursive call).
+            const mutualFriendList = mutualFriends(mapping, friend, depth + 1);
+
+            // STEP 5: Backtrack - child has returned, now merge into parent list.
+            log(
+              pad +
+                "Backtrack to " +
+                person +
+                " from " +
+                friend +
+                ": merge [" +
+                mutualFriendList.join(", ") +
+                "]"
+            );
+            finalList.push(...mutualFriendList);
+          }
+
+          // STEP 6: Return aggregated result for current frame.
+          log(pad + "Return from " + person + ": [" + finalList.join(", ") + "]");
+          return finalList;
+        } else {
+          // Base-case return when there is no friend list.
+          log(pad + "Return from " + person + ": [] (no direct friends)");
+          return [];
+        }
+      };
+
+      runBtn.addEventListener("click", () => {
+        // STEP A: Reset output box for a fresh run.
+        resultBox.textContent = "";
+        log("Tracing recursion + backtracking for person: a\n");
+
+        // STEP B: Execute solution from root person.
+        const result = mutualFriends(mapping, "a");
+
+        // STEP C: Print final combined result for revision.
+        log("\nFinal flattened list:");
+        log("[" + result.join(", ") + "]");
+        console.log("mutualFriends(a)", result);
+      });
+    </script>
+  </body>
+</html>

@@ -1,0 +1,64 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Fetch with Timeout</title>
+  </head>
+  <body>
+      <div style="max-width:760px;margin:20px auto;font-family:Arial,Helvetica,sans-serif;line-height:1.5;color:#111">
+        <h2>Fetch with Timeout — Documentation</h2>
+        <p><strong>Purpose:</strong> Perform a fetch request that will be aborted if it does not settle within a given timeout.</p>
+        <p><strong>Function:</strong> <code>fetchWithTimeout(url, timeoutLimit)</code></p>
+        <ul>
+          <li><strong>url</strong> — request URL (string).</li>
+          <li><strong>timeoutLimit</strong> — timeout in milliseconds (number). If the fetch does not finish within this time, the request is aborted.</li>
+        </ul>
+        <p><strong>Behavior notes:</strong></p>
+        <ul>
+          <li>The function returns the <code>fetch</code> Promise so callers can handle response parsing and errors.</li>
+          <li>On timeout, the underlying <code>AbortController</code> aborts the request — fetch will reject with an <code>AbortError</code>.</li>
+          <li>The timeout timer is always cleared when the fetch settles (success or failure).</li>
+        </ul>
+        <h4>Usage example</h4>
+        <pre style="background:#f3f4f6;padding:12px;border-radius:6px;">const p = fetchWithTimeout('/api/data', 5000);
+  p.then(r => r.json())
+   .then(data =&gt; console.log(data))
+   .catch(err =&gt; {
+     if (err.name === 'AbortError') console.log('Request timed out');
+     else console.error(err);
+   });</pre>
+      </div>
+
+    <script>
+        /**
+         * Perform fetch with abort on timeout.
+         * @param {string} url - the resource URL to fetch
+         * @param {number} timeoutLimit - timeout in milliseconds
+         * @returns {Promise<Response>} The fetch Promise; caller should handle response parsing.
+         */
+        const fetchWithTimeout = (url, timeoutLimit) => {
+          // Create an AbortController to be able to cancel the fetch
+          const controller = new AbortController();
+          const signal = controller.signal;
+
+          // Start the timeout timer that will abort the request when fired
+          const timerId = setTimeout(() => {
+            // Signal for debugging; actual error will be an AbortError from fetch
+            console.log('Aborted');
+            controller.abort();
+          }, timeoutLimit);
+
+          // Return the fetch promise so the caller can decide how to parse/handle it.
+          // Always clear the timeout when the fetch settles.
+          return fetch(url, { signal }).finally(() => clearTimeout(timerId));
+        };
+
+        // Example invocation used by the demo
+        fetchWithTimeout('https://jsonplaceholder.typicode.com/todos/1', 1000)
+          .then((res) => res.json())
+          .then((res) => console.log(res))
+          .catch((err) => console.log(err));
+      </script>
+    </body>
+  </html>

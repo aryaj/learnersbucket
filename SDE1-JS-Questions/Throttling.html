@@ -1,0 +1,102 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Throttling Example</title>
+    <style>
+      body { font-family: Arial, sans-serif; margin: 24px; background: #f4f6fb; color: #111827; }
+      main { max-width: 920px; margin: 0 auto; background: white; border-radius: 14px; padding: 24px; box-shadow: 0 18px 40px rgba(15, 23, 42, 0.08); }
+      h1 { margin-bottom: 0.25rem; font-size: 2rem; }
+      p { margin: 0.75rem 0; }
+      pre { background: #111827; color: #e2e8f0; padding: 18px; border-radius: 12px; overflow-x: auto; }
+      code { color: #a5f3fc; }
+      .result { background: #f8fafc; border: 1px solid #cbd5e1; border-radius: 10px; padding: 16px; }
+      .result p { margin: 0.5rem 0; }
+      button { padding: 12px 18px; margin-bottom: 12px; background: #2563eb; color: white; border: none; border-radius: 8px; cursor: pointer; }
+    </style>
+  </head>
+  <body>
+    <main>
+      <h1>Throttling Example</h1>
+      <p>This document explains a throttle implementation that limits how often a function can run.</p>
+      <p>Throttling is useful for keeping event handlers from firing too frequently.</p>
+      <section>
+        <h2>Implementation</h2>
+        <pre><code>function throttle(fn, delay) {
+  let lastCallTime = 0;
+  let timeoutId = null;
+
+  return function throttled(...args) {
+    const now = Date.now();
+    const remaining = delay - (now - lastCallTime);
+    const context = this;
+
+    if (remaining <= 0 || lastCallTime === 0) {
+      if (timeoutId) {
+        clearTimeout(timeoutId);
+        timeoutId = null;
+      }
+      lastCallTime = now;
+      fn.apply(context, args);
+    } else if (!timeoutId) {
+      timeoutId = setTimeout(() => {
+        lastCallTime = Date.now();
+        timeoutId = null;
+        fn.apply(context, args);
+      }, remaining);
+    }
+  };
+}</code></pre>
+      </section>
+      <section>
+        <h2>Example output</h2>
+        <div class="result" id="result"></div>
+      </section>
+    </main>
+    <script src="common.js"></script>
+    <script>      function throttle(fn, delay) {
+        let lastCallTime = 0;
+        let timeoutId = null;
+
+        return function throttled(...args) {
+          const now = Date.now();
+          const remaining = delay - (now - lastCallTime);
+          const context = this;
+
+          if (remaining <= 0 || lastCallTime === 0) {
+            if (timeoutId) {
+              clearTimeout(timeoutId);
+              timeoutId = null;
+            }
+            lastCallTime = now;
+            fn.apply(context, args);
+          } else if (!timeoutId) {
+            timeoutId = setTimeout(() => {
+              lastCallTime = Date.now();
+              timeoutId = null;
+              fn.apply(context, args);
+            }, remaining);
+          }
+        };
+      }
+
+      const action = () => safeLog(`Throttled event at ${new Date().toLocaleTimeString()}`);
+      const throttledAction = throttle(action, 1000);
+
+      const button = document.getElementById('clickMe');
+      if (button) {
+        button.addEventListener('click', throttledAction);
+        safeLog('Button found. Click rapidly and observe throttled output.');
+      } else {
+        safeLog('No button found. Simulating repeated invocations to demonstrate throttling...');
+        for (let i = 0; i < 6; i += 1) {
+          setTimeout(() => {
+            safeLog(`Invocation ${i + 1}`);
+            throttledAction();
+          }, i * 200);
+        }
+      }
+    </script>
+  </body>
+</html>

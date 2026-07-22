@@ -3,43 +3,69 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Document</title>
+    <title>Debounce Example</title>
+    <style>
+      body { font-family: Arial, sans-serif; margin: 24px; background: #f4f6fb; color: #111827; }
+      main { max-width: 920px; margin: 0 auto; background: white; border-radius: 14px; padding: 24px; box-shadow: 0 18px 40px rgba(15, 23, 42, 0.08); }
+      h1 { margin-bottom: 0.25rem; font-size: 2rem; }
+      p { margin: 0.75rem 0; }
+      pre { background: #111827; color: #e2e8f0; padding: 18px; border-radius: 12px; overflow-x: auto; }
+      code { color: #a5f3fc; }
+      .note { background: #eff6ff; border-left: 4px solid #3b82f6; padding: 14px; margin: 1rem 0; }
+      .result { background: #f8fafc; border: 1px solid #cbd5e1; border-radius: 10px; padding: 16px; }
+      .result p { margin: 0.5rem 0; }
+      button { padding: 12px 18px; background: #2563eb; color: white; border: none; border-radius: 8px; cursor: pointer; }
+    </style>
   </head>
   <body>
-    <div>
-      <button id="clickme">Click Me</button>
-    </div>
+    <main>
+      <h1>Debounce Example</h1>
+      <p>This page explains how debounce delays function execution until after a quiet period.</p>
+      <p>Debounce is useful for rate-limiting repeated events such as clicks, input, or scroll events.</p>
+      <section>
+        <h2>Implementation</h2>
+        <pre><code>function debounce(fn, delay) {
+  let timerId;
 
-    <script>
-      // debounce(fn, delay) returns a new function that delays calling fn until
-      // delay milliseconds have passed since the last invocation.
-      // This is useful for events that fire repeatedly, such as click, scroll,
-      // or input events.
-      function debounce(fn, delay) {
+  return function (...args) {
+    const context = this;
+    clearTimeout(timerId);
+    timerId = setTimeout(() => fn.apply(context, args), delay);
+  };
+}</code></pre>
+      </section>
+      <section>
+        <h2>Interactive demo</h2>
+        <div class="note">If a button is present, clicking it demonstrates debounce. If not, the example simulates repeated calls automatically.</div>
+        <div class="result" id="result"></div>
+      </section>
+    </main>
+    <script src="common.js"></script>
+    <script>      function debounce(fn, delay) {
         let timerId;
-
         return function (...args) {
-          // Preserve the current this value so fn receives the same receiver.
           const context = this;
-
-          // Cancel any previous pending call before scheduling the next one.
           clearTimeout(timerId);
-
-          // Schedule fn with the latest arguments and context.
           timerId = setTimeout(() => fn.apply(context, args), delay);
         };
       }
 
-      const btn = document.getElementById("clickme");
+      const callback = () => safeLog(`debounced handler executed at ${new Date().toLocaleTimeString()}`);
+      const debounced = debounce(callback, 1000);
 
-      // The click handler is debounced: repeated clicks within 3 seconds
-      // will only execute the callback once, after the last click.
-      btn.addEventListener(
-        "click",
-        debounce(() => {
-          console.log("click");
-        }, 3000),
-      );
+      const button = document.getElementById('clickme');
+      if (button) {
+        button.addEventListener('click', debounced);
+        safeLog('Button found. Click rapidly and watch the debounced output.');
+      } else {
+        safeLog('No button found. Simulating rapid repeated calls now...');
+        [0, 100, 250, 400, 900, 1300].forEach((delay) => {
+          setTimeout(() => {
+            safeLog(`Simulated event at ${delay}ms`);
+            debounced();
+          }, delay);
+        });
+      }
     </script>
   </body>
 </html>

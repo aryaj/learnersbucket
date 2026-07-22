@@ -1,0 +1,234 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Custom Cookie</title>
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        margin: 0;
+        padding: 24px;
+        background: #f5f7fb;
+        color: #111827;
+      }
+      .container {
+        max-width: 960px;
+        margin: 0 auto;
+      }
+      .card {
+        background: #ffffff;
+        border: 1px solid #d1d5db;
+        border-radius: 14px;
+        padding: 24px;
+        margin-bottom: 24px;
+        box-shadow: 0 10px 30px rgba(15, 23, 42, 0.06);
+      }
+      h1,
+      h2 {
+        margin-top: 0;
+      }
+      p,
+      li {
+        line-height: 1.7;
+      }
+      pre {
+        background: #f8fafc;
+        border: 1px solid #e2e8f0;
+        border-radius: 12px;
+        padding: 16px;
+        overflow-x: auto;
+      }
+      code {
+        background: #eef2ff;
+        padding: 2px 6px;
+        border-radius: 6px;
+        font-family: Consolas, Monaco, monospace;
+      }
+      button {
+        background: #2563eb;
+        color: white;
+        border: none;
+        padding: 10px 16px;
+        border-radius: 10px;
+        cursor: pointer;
+        font-size: 0.95rem;
+      }
+      .result {
+        margin-top: 16px;
+        padding: 14px;
+        border-radius: 12px;
+        background: #eff6ff;
+        border: 1px solid #dbeafe;
+        white-space: pre-wrap;
+        min-height: 120px;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <div class="card">
+        <h1>Custom Cookie</h1>
+        <p>
+          This example demonstrates how a custom property can behave like a cookie by using <code>Object.defineProperty</code> with a setter and getter.
+          It is a simplified learning demo, not a full browser-cookie implementation.
+        </p>
+      </div>
+
+      <div class="card">
+        <h2>Problem Summary</h2>
+        <ul>
+          <li>Parse a cookie-like string such as <code>name=ajay;max-age=4</code>.</li>
+          <li>Store the value in an in-memory map.</li>
+          <li>Use a getter/setter to control how values are assigned and read.</li>
+          <li>Support expiry using the <code>max-age</code> option.</li>
+        </ul>
+      </div>
+
+      <div class="card">
+        <h2>Implementation Idea</h2>
+        <pre><code>Object.defineProperty(document, 'myCookie', {
+  configurable: true,
+  set(value) {
+    const { key, value: cookieValue, options } = parseCookieString(value);
+    const expiry = options['max-age']
+      ? Date.now() + Number(options['max-age']) * 1000
+      : Infinity;
+    store.set(key, { value: cookieValue, expiry });
+  },
+  get() {
+    return Array.from(store.entries())
+      .filter(([, entry]) => Date.now() < entry.expiry)
+      .map(([name, entry]) => `${name}=${entry.value}`)
+      .join('; ');
+  }
+});</code></pre>
+      </div>
+
+      <div class="card">
+        <h2>Live Demo</h2>
+        <p>
+          Click the button below to assign a few cookie-like values and inspect how the getter returns the current active ones.
+        </p>
+        <button id="runBtn">Run demo</button>
+        <div class="result" id="resultBox">Click the button to start the demo.</div>
+      </div>
+    </div>
+
+    <script>
+      // Step 1: Helper to split a cookie-like string around '=' and trim spaces.
+      function separateString(str) {
+        return str.split("=").map((s) => s.trim());
+      }
+
+      // Step 2: Parse a cookie string like:
+      // "name=ajay; max-age=1; path=/"
+      // into { key, value, options }.
+      function parseCookieString(str) {
+        const [nameValue, ...rest] = str.split(";");
+        const [key, value] = separateString(nameValue);
+
+        let options = {};
+
+        for (let option of rest) {
+          const [optionKey, optionValue] = separateString(option);
+          options[optionKey] = optionValue;
+        }
+
+        return {
+          key,
+          value,
+          options,
+        };
+      }
+
+      // Step 3: Create a custom cookie-like property on document.
+      // This uses Object.defineProperty so assignment and reading can be controlled.
+      function useCustomCookie() {
+        const store = new Map();
+
+        Object.defineProperty(document, "myCookie", {
+          configurable: true,
+
+          // Setter runs when we do: document.myCookie = "name=ajay;max-age=1"
+          set(val) {
+            const { key, value, options } = parseCookieString(val);
+
+            let expires = Infinity;
+
+            if (options["max-age"]) {
+              expires = Date.now() + Number(options["max-age"]) * 1000;
+            }
+
+            store.set(key, { value, expires });
+          },
+
+          // Getter runs when we read: document.myCookie
+          get() {
+            const cookies = [];
+            const time = Date.now();
+
+            for (const [name, { value, expires }] of store) {
+              if (time > expires) {
+                store.delete(name);
+              } else {
+                cookies.push(`${name}=${value}`);
+              }
+            }
+
+            return cookies.join("; ");
+          },
+        });
+      }
+
+      // Step 4: Set up the demo UI and show the result in the output box.
+      const resultBox = document.getElementById("resultBox");
+      const runBtn = document.getElementById("runBtn");
+
+      function log(message) {
+        resultBox.textContent += message + "\n";
+      }
+
+      // Step 5: Run the demo when the button is clicked.
+      runBtn.addEventListener("click", () => {
+        resultBox.textContent = "";
+        useCustomCookie();
+
+        document.myCookie = "name=ajay;max-age=1";
+        document.myCookie = "hobbie=swimming";
+
+        log("Assigned cookies...");
+        log("Current value: " + document.myCookie);
+
+        setTimeout(() => {
+          log("After 1 seconds: " + document.myCookie);
+        }, 1000);
+      });
+
+      // Extra examples for understanding Object.defineProperty.
+      // const obj = {};
+      // Object.defineProperty(obj, "name", {
+      //   value: "ajay",
+      //   writable: false,
+      //   enumerable: true,
+      //   configurable: false,
+      // });
+
+      // const user = {};
+      // let internalName = "";
+      // Object.defineProperty(user, "name", {
+      //   get() {
+      //     return internalName + "testing";
+      //   },
+      //   set(value) {
+      //     if (typeof value !== "string") {
+      //       throw new TypeError("name must be a string");
+      //     }
+      //     internalName = value.trim();
+      //   },
+      //   enumerable: true,
+      //   configurable: true,
+      // });
+    </script>
+  </body>
+</html>

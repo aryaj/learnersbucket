@@ -4,38 +4,54 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Toggle Function</title>
+    <style>
+      body { font-family: Arial, sans-serif; margin: 24px; background: #f4f6fb; color: #111827; }
+      main { max-width: 920px; margin: 0 auto; background: white; border-radius: 14px; padding: 24px; box-shadow: 0 18px 40px rgba(15, 23, 42, 0.08); }
+      h1 { margin-bottom: 0.25rem; font-size: 2rem; }
+      p { margin: 0.75rem 0; }
+      pre { background: #111827; color: #e2e8f0; padding: 18px; border-radius: 12px; overflow-x: auto; }
+      code { color: #a5f3fc; }
+      .result { background: #f8fafc; border: 1px solid #cbd5e1; border-radius: 10px; padding: 16px; }
+      .result p { margin: 0.5rem 0; }
+    </style>
 </head>
 <body>
-    <h1>Toggle Function</h1>
-    <p>This example creates a toggle function that cycles through a list of arguments each time it is called.</p>
-    <p>When the end of the argument list is reached, it wraps back to the first element.</p>
-    <script>
-        /**
-         * Return a function that cycles through the provided values.
-         *
-         * @param {...*} args - Values to toggle through.
-         * @returns {Function} A function that logs the next value on each call.
-         */
-        function toggleFunction(...args) {
-            let index = -1;
-            return function () {
-                if (++index === args.length) {
-                    index = 0;
-                }
-                console.log(args[index]);
-            };
-        }
+    <main>
+      <h1>Toggle Function</h1>
+      <p>This page documents a toggler that cycles through provided values on each call.</p>
+      <p>When the end of the list is reached, it wraps back to the first element.</p>
+      <section>
+        <h2>Implementation</h2>
+        <pre><code>function toggleFunction(...args) {
+  let index = -1;
+  return function () {
+    if (++index === args.length) {
+      index = 0;
+    }
+    return args[index];
+  };
+}</code></pre>
+      </section>
+      <section>
+        <h2>Example output</h2>
+        <div class="result" id="result"></div>
+      </section>
+    </main>
+    <script src="common.js"></script>
+    <script>      function toggleFunction(...args) {
+        let index = -1;
+        return function () {
+          if (++index === args.length) {
+            index = 0;
+          }
+          return args[index];
+        };
+      }
 
-        const toggle = toggleFunction('ONE', 'TWO', 'THREE', 'FOUR', 'FIVE', 'SIX', 'SEVEN', 'EIGHT');
-        toggle(); // Output: ONE
-        toggle(); // Output: TWO
-        toggle(); // Output: THREE
-        toggle(); // Output: FOUR
-        toggle(); // Output: FIVE
-        toggle(); // Output: SIX
-        toggle(); // Output: SEVEN
-        toggle(); // Output: EIGHT
-        toggle(); // Output: ONE
+      const toggle = toggleFunction('ONE', 'TWO', 'THREE', 'FOUR', 'FIVE', 'SIX', 'SEVEN', 'EIGHT');
+      for (let i = 0; i < 9; i += 1) {
+        safeLog(`Call ${i + 1}: ${toggle()}`);
+      }
     </script>
 </body>
 </html>

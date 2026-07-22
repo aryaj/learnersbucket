@@ -1,0 +1,135 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Reduce Function Example</title>
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        background: #f6f8fa;
+        color: #0f172a;
+        padding: 24px;
+      }
+      .box {
+        background: #fff;
+        border: 1px solid #e6eef7;
+        border-radius: 12px;
+        padding: 20px;
+        max-width: 760px;
+        margin: 0 auto;
+      }
+      pre {
+        background: #f8fbff;
+        border: 1px solid #e6eef7;
+        padding: 16px;
+        border-radius: 10px;
+        overflow-x: auto;
+      }
+      button {
+        padding: 10px 16px;
+        border: none;
+        border-radius: 8px;
+        background: #2563eb;
+        color: #fff;
+        cursor: pointer;
+        margin-top: 12px;
+      }
+      .result {
+        margin-top: 18px;
+        padding: 14px;
+        background: #eef6ff;
+        border: 1px solid #dbeafe;
+        border-radius: 10px;
+      }
+      h1 {
+        margin-bottom: 8px;
+        font-size: 1.5rem;
+      }
+      p {
+        line-height: 1.6;
+        color: #475569;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="box">
+      <h1>Reduce Function Example</h1>
+      <p>
+        This page demonstrates the JavaScript
+        <code>Array.prototype.reduce()</code> method with three common use
+        cases:
+      </p>
+      <ul>
+        <li>Sum of numbers</li>
+        <li>Flattening nested arrays</li>
+        <li>Counting item occurrences</li>
+      </ul>
+
+      <section>
+        <h2>Reduce usage</h2>
+        <pre><code>const numbers = [10, 20, 30];
+            const sum = numbers.reduce((acc, value) => acc + value, 0);
+
+            const nested = [[1, 2], [3, 4], [5]];
+            const flat = nested.reduce((acc, value) => acc.concat(value), []);
+
+            const items = ['apple', 'banana', 'apple', 'orange'];
+            const counts = items.reduce((acc, value) => {
+            acc[value] = (acc[value] || 0) + 1;
+            return acc;
+            }, {});
+        </code></pre>
+      </section>
+
+      <button id="runBtn">Run Reduce Examples</button>
+      <div class="result" id="resultBox">
+        Click the button to execute the sample reduce code.
+      </div>
+    </div>
+
+    <script>
+      const runBtn = document.getElementById("runBtn");
+      const resultBox = document.getElementById("resultBox");
+
+      /**
+       * Example 1: Sum numbers using reduce.
+       */
+      const sumExample = () => {
+        const numbers = [10, 20, 30];
+        return numbers.reduce((acc, value) => acc + value, 0);
+      };
+
+      /**
+       * Example 2: Flatten nested arrays using reduce.
+       */
+      const flattenExample = () => {
+        const nested = [[1, 2], [3, 4], [5]];
+        return nested.reduce((acc, value) => acc.concat(value), []);
+      };
+
+      /**
+       * Example 3: Count occurrences of values in an array.
+       */
+      const countExample = () => {
+        const items = ["apple", "banana", "apple", "orange", "banana"];
+        return items.reduce((acc, value) => {
+          acc[value] = (acc[value] || 0) + 1;
+          return acc;
+        }, {});
+      };
+
+      runBtn.addEventListener("click", () => {
+        const sum = sumExample();
+        const flat = flattenExample();
+        const counts = countExample();
+
+        resultBox.innerHTML = `
+          <strong>Sum result:</strong> ${sum}<br>
+          <strong>Flatten result:</strong> [${flat.join(", ")}]<br>
+          <strong>Counts result:</strong> ${JSON.stringify(counts)}
+        `;
+      });
+    </script>
+  </body>
+</html>

@@ -1,0 +1,285 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Custom ReactDom.Render</title>
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        margin: 0;
+        padding: 24px;
+        background: #f5f7fb;
+        color: #111827;
+      }
+      .container {
+        max-width: 960px;
+        margin: 0 auto;
+      }
+      .card {
+        background: #ffffff;
+        border: 1px solid #d1d5db;
+        border-radius: 14px;
+        padding: 24px;
+        margin-bottom: 24px;
+        box-shadow: 0 10px 30px rgba(15, 23, 42, 0.06);
+      }
+      h1,
+      h2 {
+        margin-top: 0;
+      }
+      p,
+      li {
+        line-height: 1.7;
+      }
+      pre {
+        background: #f8fafc;
+        border: 1px solid #e2e8f0;
+        border-radius: 12px;
+        padding: 16px;
+        overflow-x: auto;
+      }
+      code {
+        background: #eef2ff;
+        padding: 2px 6px;
+        border-radius: 6px;
+        font-family: Consolas, Monaco, monospace;
+      }
+      button {
+        background: #2563eb;
+        color: white;
+        border: none;
+        padding: 10px 16px;
+        border-radius: 10px;
+        cursor: pointer;
+        font-size: 0.95rem;
+      }
+      .result {
+        margin-top: 16px;
+        padding: 14px;
+        border-radius: 12px;
+        background: #eff6ff;
+        border: 1px solid #dbeafe;
+        white-space: pre-wrap;
+        min-height: 120px;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <div class="card">
+        <h1>Custom ReactDom.Render</h1>
+        <p>
+          This example demonstrates how to implement a custom
+          <code>ReactDOM.render</code> function that can render React-like
+          components to the DOM.
+        </p>
+      </div>
+
+      <div class="card">
+        <h2>Problem Summary</h2>
+        <ul>
+          <li>
+            Implement a custom render function that takes a React element and a
+            container.
+          </li>
+          <li>
+            Support rendering basic HTML elements like div, span, h1, etc.
+          </li>
+          <li>Handle nested elements and children.</li>
+          <li>Support text nodes as children.</li>
+          <li>Replace existing content in the container.</li>
+        </ul>
+      </div>
+
+      <div class="card">
+        <h2>How It Works: Step-by-Step Approach</h2>
+        <ol>
+          <li>
+            <strong>Element Structure:</strong> A React-like element is a plain JavaScript object with <code>type</code> (tag name), <code>props</code> (attributes), and <code>children</code> (nested elements or text).
+          </li>
+          <li>
+            <strong>Recursive Rendering:</strong> The render function processes each element recursively. It creates a DOM element, applies props as attributes, then renders children.
+          </li>
+          <li>
+            <strong>Props Handling:</strong> Loop through props using <code>Object.entries()</code> and set them as properties on the DOM element.
+          </li>
+          <li>
+            <strong>Children Processing:</strong> Children can be either strings (text nodes) or element objects. Handle both cases separately.
+          </li>
+          <li>
+            <strong>Assembly:</strong> Append each rendered child to the parent element, then append the root to the container.
+          </li>
+        </ol>
+      </div>
+
+      <div class="card">
+        <h2>Example Structure</h2>
+        <pre><code>const element = {
+  type: "div",
+  props: { id: "app", className: "container" },
+  children: [
+    { type: "h1", props: {}, children: ["Hello"] },
+    { type: "p", props: {}, children: ["This is a paragraph"] }
+  ]
+};</code></pre>
+      </div>
+
+      <div class="card">
+        <h2>Implementation Strategy</h2>
+        <pre><code>function render(element, container) {
+  // 1. Base case: if element is a string, create a text node
+  if (typeof element === 'string') {
+    return document.createTextNode(element);
+  }
+
+  // 2. Create the DOM element with the given type (e.g., 'div', 'h1')
+  const domElement = document.createElement(element.type);
+
+  // 3. Apply props as attributes to the element
+  if (element.props) {
+    Object.entries(element.props).forEach(([key, value]) => {
+      domElement[key] = value;
+    });
+  }
+
+  // 4. Recursively render children
+  if (element.children) {
+    element.children.forEach((child) => {
+      const renderedChild = render(child, container);
+      domElement.appendChild(renderedChild);
+    });
+  }
+
+  return domElement;
+}
+
+// Usage:
+render(element, document.getElementById('app'));</code></pre>
+      </div>
+
+      <div class="card">
+        <h2>Live Demo</h2>
+        <p>
+          Click the button below to test the custom ReactDOM.render
+          implementation.
+        </p>
+        <button id="runBtn">Run demo</button>
+        <div class="result" id="resultBox">
+          Click the button to start the demo.
+        </div>
+        <div
+          id="demoContainer"
+          style="
+            margin-top: 16px;
+            padding: 14px;
+            border: 1px solid #d1d5db;
+            border-radius: 12px;
+            background: #fafafa;
+          "
+        ></div>
+      </div>
+    </div>
+
+    <script>
+      // DOM API Reference:
+      // - document.createElement(tag): Creates a new element node
+      // - document.createTextNode(text): Creates a text node for string content
+      // - document.createDocumentFragment(): Creates an optimized container for multiple nodes
+      // - element.appendChild(child): Appends a child to an element
+      // - Object.entries(obj): Converts object to [key, value] pairs for iteration
+
+      const resultBox = document.getElementById("resultBox");
+      const runBtn = document.getElementById("runBtn");
+      const demoContainer = document.getElementById("demoContainer");
+
+      function log(message) {
+        resultBox.textContent += message + "\n";
+      }
+
+      // Example element structure (React-like):
+      // { type: "tagName", props: {attributes}, children: [elements or strings] }
+      const exampleElement = {
+        type: "div",
+        props: { id: "app", className: "container" },
+        children: [
+          {
+            type: "h1",
+            props: { style: "color: blue;" },
+            children: ["Custom React Renderer"],
+          },
+          {
+            type: "p",
+            props: {},
+            children: ["This demonstrates recursive DOM rendering"],
+          },
+        ],
+      };
+
+      // Main render function that recursively converts element objects to actual DOM
+      function render(element, container) {
+        // STEP 1: Handle string elements (text nodes)
+        // If element is a string, create a text node and return it
+        if (typeof element === "string") {
+          return document.createTextNode(element);
+        }
+
+        // STEP 2: Create the DOM element from element.type
+        // Example: "div" becomes a new <div></div> element
+        const domElement = document.createElement(element.type);
+        log(`Created element: <${element.type}>`);
+
+        // STEP 3: Apply props as attributes to the element
+        // Use Object.entries() to iterate key-value pairs cleanly
+        if (element.props) {
+          Object.entries(element.props).forEach(([key, value]) => {
+            // Set the property on the DOM element (id, className, style, etc.)
+            domElement[key] = value;
+            log(`  - Set property: ${key} = ${value}`);
+          });
+        }
+
+        // STEP 4: Recursively render and append children
+        // Use DocumentFragment for efficient batch appending
+        if (element.children && Array.isArray(element.children)) {
+          const fragment = document.createDocumentFragment();
+
+          element.children.forEach((child) => {
+            // Recursively render each child (could be string or element)
+            const renderedChild = render(child, null);
+            fragment.appendChild(renderedChild);
+          });
+
+          // Append all children at once (more efficient than individual appends)
+          domElement.appendChild(fragment);
+          log(`  - Appended ${element.children.length} children`);
+        }
+
+        // STEP 5: If container provided, clear and mount the root element
+        if (container) {
+          container.innerHTML = "";
+          container.appendChild(domElement);
+          log(`Mounted to container`);
+        }
+
+        // Return the fully constructed DOM tree
+        return domElement;
+      }
+
+      // Demo button handler
+      runBtn.addEventListener("click", () => {
+        resultBox.textContent = "";
+        demoContainer.innerHTML = "";
+
+        log("=== Starting Render Process ===");
+        log("");
+
+        // Call render to convert element object into DOM
+        render(exampleElement, demoContainer);
+
+        log("");
+        log("=== Render Complete ===");
+      });
+    </script>
+  </body>
+</html>

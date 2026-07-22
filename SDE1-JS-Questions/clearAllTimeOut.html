@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Clear All Timeouts</title>
+    <style>
+      body { font-family: Arial, sans-serif; margin: 24px; background: #f4f6fb; color: #111827; }
+      main { max-width: 920px; margin: 0 auto; background: white; border-radius: 14px; padding: 24px; box-shadow: 0 18px 40px rgba(15, 23, 42, 0.08); }
+      h1 { margin-bottom: 0.25rem; font-size: 2rem; }
+      p { margin: 0.75rem 0; }
+      pre { background: #111827; color: #e2e8f0; padding: 18px; border-radius: 12px; overflow-x: auto; }
+      code { color: #a5f3fc; }
+      .result { background: #f8fafc; border: 1px solid #cbd5e1; border-radius: 10px; padding: 16px; }
+      .result p { margin: 0.5rem 0; }
+    </style>
+</head>
+<body>
+    <main>
+      <h1>Clear All Timeouts</h1>
+      <p>This page documents a timer manager that tracks timeout IDs and clears them all at once.</p>
+      <section>
+        <h2>Implementation</h2>
+        <pre><code>const MY_TIMERS = {
+  timerIds: [],
+  setTimeout(fn, delay) {
+    const timerId = setTimeout(fn, delay);
+    this.timerIds.push(timerId);
+    return timerId;
+  },
+  clearAllTimeout() {
+    while (this.timerIds.length) {
+      clearTimeout(this.timerIds.pop());
+    }
+  },
+};</code></pre>
+      </section>
+      <section>
+        <h2>Example output</h2>
+        <div class="result" id="result"></div>
+      </section>
+    </main>
+    <script src="common.js"></script>
+    <script>      const MY_TIMERS = {
+        timerIds: [],
+        setTimeout(fn, delay) {
+          const timerId = setTimeout(fn, delay);
+          this.timerIds.push(timerId);
+          return timerId;
+        },
+        clearAllTimeout() {
+          while (this.timerIds.length) {
+            clearTimeout(this.timerIds.pop());
+          }
+        },
+      };
+
+      MY_TIMERS.setTimeout(() => safeLog('hello from 1s'), 1000);
+      MY_TIMERS.setTimeout(() => safeLog('hello from 2s'), 2000);
+      MY_TIMERS.setTimeout(() => safeLog('hello from 3s'), 3000);
+      MY_TIMERS.setTimeout(() => safeLog('hello from 4s'), 4000);
+
+      safeLog('All timers scheduled. Clearing them before execution...');
+      MY_TIMERS.clearAllTimeout();
+      safeLog('All pending timeouts were cleared. No further messages will appear after this.');
+    </script>
+</body>
+</html>

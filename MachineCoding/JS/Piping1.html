@@ -1,0 +1,243 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Piping 1</title>
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        margin: 0;
+        padding: 24px;
+        background: #f5f7fb;
+        color: #111827;
+      }
+      .container {
+        max-width: 960px;
+        margin: 0 auto;
+      }
+      .card {
+        background: #ffffff;
+        border: 1px solid #d1d5db;
+        border-radius: 14px;
+        padding: 24px;
+        margin-bottom: 24px;
+        box-shadow: 0 10px 30px rgba(15, 23, 42, 0.06);
+      }
+      h1,
+      h2 {
+        margin-top: 0;
+      }
+      p,
+      li {
+        line-height: 1.7;
+      }
+      pre {
+        background: #f8fafc;
+        border: 1px solid #e2e8f0;
+        border-radius: 12px;
+        padding: 16px;
+        overflow-x: auto;
+      }
+      code {
+        background: #eef2ff;
+        padding: 2px 6px;
+        border-radius: 6px;
+        font-family: Consolas, Monaco, monospace;
+      }
+      button {
+        background: #2563eb;
+        color: white;
+        border: none;
+        padding: 10px 16px;
+        border-radius: 10px;
+        cursor: pointer;
+        font-size: 0.95rem;
+      }
+      .result {
+        margin-top: 16px;
+        padding: 14px;
+        border-radius: 12px;
+        background: #eff6ff;
+        border: 1px solid #dbeafe;
+        white-space: pre-wrap;
+        min-height: 200px;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <div class="card">
+        <h1>Piping 1</h1>
+        <p>
+          Evaluate all function values inside a nested object by passing the
+          same argument list everywhere, while preserving the original object
+          shape.
+        </p>
+      </div>
+
+      <div class="card">
+        <h2>Problem Summary</h2>
+        <ul>
+          <li>Input is a deeply nested object.</li>
+          <li>Some keys hold functions and some hold normal values.</li>
+          <li>Call each function with the provided args.</li>
+          <li>Replace each function with its computed result.</li>
+          <li>Return the transformed object with the same nesting.</li>
+        </ul>
+      </div>
+
+      <div class="card">
+        <h2>Approach (Step By Step)</h2>
+        <pre><code>// STEP 1: Build a function Pipe(obj) that returns (...args) => result.
+// STEP 2: Iterate all keys in the current object.
+// STEP 3: If value is a function, execute value(...args) and store result.
+// STEP 4: If value is a nested object, recurse: Pipe(value)(...args).
+// STEP 5: If value is primitive/null, keep as-is.
+// STEP 6: Return final object for this recursion level.
+//
+// Backtracking moment:
+// After Pipe(value)(...args) finishes, control returns to parent level,
+// and we assign that child result back to obj[key].</code></pre>
+      </div>
+
+      <div class="card">
+        <h2>Recursion And Backtracking (Easy Memory Rule)</h2>
+        <ul>
+          <li>Recursion means: go deeper into child object.</li>
+          <li>Backtracking means: child call is done, now return to parent.</li>
+          <li>At backtracking time, parent receives child result and continues loop.</li>
+        </ul>
+        <pre><code>// Parent level
+obj[key] = Pipe(child)(...args); // Go down
+// child finished
+// Backtracked here with computed child object</code></pre>
+      </div>
+
+      <div class="card">
+        <h2>Dry Run Snapshot</h2>
+        <pre><code>// Input:
+// {
+//   a: {
+//     b: (x, y, z) => x + y + z,
+//     c: (x, y, z) => x + y - z
+//   },
+//   d: (x, y, z) => x - y - z
+// }
+// args = (1, 1, 1)
+//
+// Level 1: key a -> object -> recurse
+//   Level 2: key b -> function -> 3
+//   Level 2: key c -> function -> 1
+//   return { b: 3, c: 1 }   (backtrack)
+// Level 1: key d -> function -> -1
+// Final:
+// { a: { b: 3, c: 1 }, d: -1 }</code></pre>
+      </div>
+
+      <div class="card">
+        <h2>Complexity</h2>
+        <ul>
+          <li>Time: O(n), where n = total keys visited in nested object.</li>
+          <li>Space: O(h), where h = recursion depth (call stack).</li>
+        </ul>
+      </div>
+
+      <div class="card">
+        <h2>Live Demo</h2>
+        <button id="runBtn">Run demo</button>
+        <div id="resultBox" class="result">
+          Click Run demo to see step-wise recursion/backtracking logs.
+        </div>
+      </div>
+    </div>
+
+    <script>
+      // Revision notes:
+      // 1) This version solves nested object function evaluation using recursion.
+      // 2) Backtracking point is right after recursive call returns.
+      // 3) This implementation mutates a cloned object, not the original input.
+
+      const resultBox = document.getElementById("resultBox");
+      const runBtn = document.getElementById("runBtn");
+
+      function log(message) {
+        resultBox.textContent += message + "\n";
+      }
+
+      const obj = {
+        a: {
+          b: (a, b, c) => a + b + c,
+          c: (a, b) => a * b,
+        },
+        d: (a, b) => a - b,
+        e: (a, b) => a / b,
+        f: {
+          g: (a, b) => a % b,
+          h: {
+            i: (a, b) => a ** b,
+          },
+        },
+        j: true,
+        k: "Hello",
+        l: [1, 2, 3],
+        m: null,
+      };
+
+      const obj2 = {
+        a: {
+          b: (a, b, c) => a + b + c,
+          c: (a, b, c) => a + b - c,
+        },
+        d: (a, b, c) => a - b - c,
+      };
+
+      function pipeNestedObject(inputObj) {
+        function visit(node, args, path) {
+          const output = Array.isArray(node) ? [...node] : { ...node };
+
+          for (const key in output) {
+            const value = output[key];
+            const currentPath = path ? path + "." + key : key;
+
+            // STEP 1: Execute function values with all provided args.
+            if (typeof value === "function") {
+              output[key] = value(...args);
+              log("[Function] " + currentPath + " -> " + output[key]);
+              continue;
+            }
+
+            // STEP 2: Recurse for nested non-null objects.
+            if (value !== null && typeof value === "object") {
+              log("[Recurse]  Enter " + currentPath);
+              output[key] = visit(value, args, currentPath);
+              log("[Backtrack] Exit  " + currentPath);
+              continue;
+            }
+
+            // STEP 3: Keep primitive values unchanged.
+            output[key] = value;
+            log("[Keep]      " + currentPath + " -> " + String(value));
+          }
+
+          return output;
+        }
+
+        return (...args) => visit(inputObj, args, "");
+      }
+
+      runBtn.addEventListener("click", () => {
+        resultBox.textContent = "";
+        log("Running recursive nested-pipe demo...\n");
+
+        const pipedObj = pipeNestedObject(obj)(2, 3, 4);
+        const pipedObj2 = pipeNestedObject(obj2)(1, 1, 1);
+
+        log("\nResult 1:");
+        log(JSON.stringify(pipedObj, null, 2));
+        log("\nResult 2:");
+        log(JSON.stringify(pipedObj2, null, 2));
+      });
+    </script>
+  </body>
+</html>

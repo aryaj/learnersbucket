@@ -1,0 +1,73 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Array Iterator</title>
+    <style>
+      body { font-family: Inter, Arial, sans-serif; margin: 24px; background: #f4f6fb; color: #111827; }
+      main { max-width: 900px; margin: 0 auto; background: white; border-radius: 16px; padding: 28px; box-shadow: 0 18px 40px rgba(15,23,42,0.08); }
+      h1 { margin-bottom: 0.5rem; font-size: 2rem; }
+      p { margin: 0.9rem 0; line-height: 1.7; }
+      section { margin-top: 1.75rem; }
+      pre { background: #0f172a; color: #f8fafc; padding: 18px; border-radius: 12px; overflow-x: auto; }
+      code { color: #a5f3fc; }
+      .result { background: #f8fafc; border: 1px solid #cbd5e1; border-radius: 12px; padding: 18px; }
+      .result p { margin: 0.75rem 0; }
+    </style>
+  </head>
+  <body>
+    <main>
+      <h1>Array Iterator</h1>
+      <p>This example shows how to build a simple iterator helper for arrays. The iterator exposes <code>next()</code> and <code>done()</code> methods so you can manually traverse values.</p>
+      <section>
+        <h2>How it works</h2>
+        <p>The iterator stores an internal index and returns the next element on each call. Once the array is exhausted, <code>next()</code> returns <code>null</code>. The <code>done()</code> method checks whether another item is available.</p>
+      </section>
+      <section>
+        <h2>Implementation</h2>
+        <pre><code>function iteratorHelper(arr) {
+  let index = 0;
+  return {
+    next: function () {
+      const value = arr[index++];
+      return value !== undefined ? value : null;
+    },
+    done: function () {
+      return index >= arr.length;
+    },
+  };
+}</code></pre>
+      </section>
+      <section class="result">
+        <h2>Example output</h2>
+        <div id="result"></div>
+      </section>
+    </main>
+
+    <script src="common.js"></script>
+    <script>
+      function iteratorHelper(arr) {
+        let index = 0;
+        return {
+          next: function () {
+            const next = arr[index++];
+            return next !== undefined ? next : null;
+          },
+          done: function () {
+            return index >= arr.length;
+          },
+        };
+      }
+
+      const iterator = iteratorHelper([1, 2, 3, "hello"]);
+      safeLog(`next() => ${JSON.stringify(iterator.next())}`);
+      safeLog(`next() => ${JSON.stringify(iterator.next())}`);
+      safeLog(`next() => ${JSON.stringify(iterator.next())}`);
+      safeLog(`done() => ${iterator.done()}`);
+      safeLog(`next() => ${JSON.stringify(iterator.next())}`);
+      safeLog(`next() => ${JSON.stringify(iterator.next())}`);
+      safeLog(`done() => ${iterator.done()}`);
+    </script>
+  </body>
+</html>

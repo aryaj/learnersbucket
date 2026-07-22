@@ -1,0 +1,236 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Animate Progress Bar</title>
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        margin: 0;
+        padding: 24px;
+        background: #f5f7fb;
+        color: #111827;
+      }
+      .container {
+        max-width: 960px;
+        margin: 0 auto;
+      }
+      .card {
+        background: #ffffff;
+        border: 1px solid #d1d5db;
+        border-radius: 14px;
+        padding: 24px;
+        margin-bottom: 24px;
+        box-shadow: 0 10px 30px rgba(15, 23, 42, 0.06);
+      }
+      h1,
+      h2 {
+        margin-top: 0;
+      }
+      p,
+      li {
+        line-height: 1.7;
+      }
+      pre {
+        background: #f8fafc;
+        border: 1px solid #e2e8f0;
+        border-radius: 12px;
+        padding: 16px;
+        overflow-x: auto;
+      }
+      code {
+        background: #eef2ff;
+        padding: 2px 6px;
+        border-radius: 6px;
+        font-family: Consolas, Monaco, monospace;
+      }
+      button {
+        background: #2563eb;
+        color: white;
+        border: none;
+        padding: 10px 16px;
+        border-radius: 10px;
+        cursor: pointer;
+        font-size: 0.95rem;
+      }
+      .result {
+        margin-top: 16px;
+        padding: 14px;
+        border-radius: 12px;
+        background: #eff6ff;
+        border: 1px solid #dbeafe;
+        white-space: pre-wrap;
+        min-height: 120px;
+      }
+      .track {
+        height: 16px;
+        border-radius: 999px;
+        background: #e2e8f0;
+        overflow: hidden;
+        margin-top: 12px;
+      }
+      .fill {
+        height: 100%;
+        width: 0%;
+        background: linear-gradient(90deg, #2563eb, #0ea5e9);
+      }
+      .fullWidth {
+        width: 100%;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <div class="card">
+        <h1>Animate Progress Bar</h1>
+        <p>
+          This page is prepared for the progress bar animation machine-coding
+          question. Implement the animation logic in the script section when you
+          solve it.
+        </p>
+      </div>
+
+      <div class="card">
+        <h2>Problem Summary</h2>
+        <ul>
+          <li>Create a progress bar UI with a track and fill element.</li>
+          <li>Animate fill width from 0% to target value.</li>
+          <li>Support configurable speed/duration.</li>
+          <li>Handle restart/reset behavior cleanly.</li>
+          <li>Optionally support pause/resume for advanced cases.</li>
+        </ul>
+      </div>
+
+      <div class="card">
+        <h2>Solution Approach (Queue Based)</h2>
+        <pre><code>// 1) Keep a queue (array) of pending progress-bar jobs.
+      // 2) On each Add click, push one job to queue.
+      // 3) If processor is idle, start processNext().
+      // 4) processNext() picks one job, renders one bar, animates to 100%.
+      // 5) On transitionend, process next queued job.
+      // 6) Reset clears queue, container, and invalidates active run token.</code></pre>
+      </div>
+
+      <div class="card">
+        <h2>Live Demo Placeholder</h2>
+        <button id="runBtn">Run demo</button>
+        <button id="resetBtn" style="margin-left: 8px; background: #334155">
+          Reset
+        </button>
+        <div style="margin-top: 10px">
+          <button id="addProgressBar">Add Progress Bar</button>
+        </div>
+        <div id="progressBarContainer"></div>
+        <div id="resultBox" class="result">
+          Add your solution logic, then click Run demo.
+        </div>
+      </div>
+    </div>
+
+    <script>
+      // Revision notes:
+      // 1) This is a queue processor, not parallel animation.
+      // 2) One bar runs at a time; rest wait in the queue.
+      // 3) transitionend is the signal to process the next queued bar.
+      // 4) runToken prevents stale callbacks from old runs after reset.
+
+      const resultBox = document.getElementById("resultBox");
+      const runBtn = document.getElementById("runBtn");
+      const resetBtn = document.getElementById("resetBtn");
+      const addProgressBarBtn = document.getElementById("addProgressBar");
+      const progressBarContainer = document.getElementById(
+        "progressBarContainer",
+      );
+      // Queue stores each job. A job can carry duration and future metadata.
+      const queue = [];
+      let isRunning = false;
+      const defaultDuration = 2;
+      let runToken = 0;
+
+      function log(message) {
+        resultBox.textContent += message + "\n";
+      }
+
+      runBtn.addEventListener("click", () => {
+        resultBox.textContent = "";
+        log("Demo ready. Click Add Progress Bar to enqueue jobs.");
+      });
+
+      resetBtn.addEventListener("click", () => {
+        // Increment token so old transition callbacks become no-ops.
+        runToken += 1;
+        queue.length = 0;
+        isRunning = false;
+        progressBarContainer.innerHTML = "";
+        resultBox.textContent = "Queue cleared and progress bars reset.";
+      });
+
+      // STEP 1: Render and animate a single progress bar.
+      // Calls onDone when current animation finishes.
+      function createProgressBar(time = defaultDuration, token, onDone) {
+        const track = document.createElement("div");
+        const fill = document.createElement("div");
+        track.classList.add("track");
+        fill.classList.add("fill");
+        fill.style.setProperty("transition", `width ${time}s ease`);
+        track.appendChild(fill);
+        progressBarContainer.appendChild(track);
+
+        // Force layout so width:0 is committed before animating to width:100.
+        void fill.offsetWidth;
+
+        // Double requestAnimationFrame provides stable transition start timing.
+        requestAnimationFrame(() => {
+          requestAnimationFrame(() => {
+            fill.classList.add("fullWidth");
+          });
+        });
+
+        fill.addEventListener(
+          "transitionend",
+          (event) => {
+            if (event.propertyName !== "width") return;
+            if (token !== runToken) return;
+            onDone();
+          },
+          { once: true },
+        );
+      }
+
+      // STEP 2: Queue processor.
+      // Picks one item, runs it, then recursively continues until queue is empty.
+      function processNext() {
+        if (queue.length === 0) {
+          isRunning = false;
+          log("Queue completed.");
+          return;
+        }
+
+        const nextJob = queue.shift();
+        const token = runToken;
+        const remaining = queue.length;
+        log(`Processing one bar (${nextJob.duration}s). Remaining in queue: ${remaining}`);
+
+        createProgressBar(nextJob.duration, token, () => {
+          processNext();
+        });
+      }
+
+      // STEP 3: Enqueue one job.
+      // Starts processor only when idle.
+      function enqueueProgressBar(time = defaultDuration) {
+        queue.push({ duration: time });
+        log(`Queued: ${queue.length}`);
+
+        if (!isRunning) {
+          isRunning = true;
+          log("Started processing queue...");
+          processNext();
+        }
+      }
+
+      addProgressBarBtn.addEventListener("click", () => enqueueProgressBar(2));
+    </script>
+  </body>
+</html>

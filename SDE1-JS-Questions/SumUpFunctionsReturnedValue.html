@@ -1,0 +1,119 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Compare sequential vs parallel async execution</title>
+    <style>
+      body { font-family: Inter, Arial, sans-serif; margin: 24px; background: #f4f6fb; color: #111827; }
+      main { max-width: 900px; margin: 0 auto; padding: 24px; background: white; border-radius: 16px; box-shadow: 0 18px 40px rgba(15,23,42,0.08); }
+      h1 { margin-bottom: 0.5rem; font-size: 2rem; }
+      h2 { margin-top: 1.75rem; font-size: 1.2rem; }
+      p { line-height: 1.75; margin: 0.9rem 0; }
+      pre { background: #0f172a; color: #f8fafc; padding: 18px; border-radius: 12px; overflow-x: auto; }
+      code { color: #a5f3fc; }
+      .note { margin-top: 1rem; padding: 14px; border-left: 4px solid #2563eb; background: #eff6ff; color: #1e3a8a; border-radius: 8px; }
+    </style>
+  </head>
+  <body>
+    <main>
+      <h1>Compare sequential vs parallel async execution</h1>
+      <p>This example compares two ways to run async work: <strong>series</strong> and <strong>parallel</strong>. It explains how the <code>async/await</code> wrapper works and why the returned value is logged after each task completes.</p>
+
+      <section>
+        <h2>How it works</h2>
+        <p>The <code>evaluate</code> helper is declared as <code>async</code>, so it always returns a <code>Promise</code>. Inside it, <code>await fn()</code> pauses the wrapper until the provided function resolves, then logs the result.</p>
+        <div class="note">Important: <code>async</code> makes the wrapper asynchronous, but it does not make a synchronous function automatically run in parallel.</div>
+      </section>
+
+      <section>
+        <h2>Series vs parallel</h2>
+        <p><strong>series</strong> waits for <code>A(1)</code> to complete before starting <code>B(2)</code>. Total time is roughly 3 seconds.</p>
+        <p><strong>parallel</strong> starts both promises before awaiting them. It then waits for both to resolve, so total time is roughly 2 seconds.</p>
+      </section>
+
+      <section>
+        <h2>Example code</h2>
+        <pre><code>const evaluate = async (fn, label) => {
+  const startTime = performance.now();
+  console.log(`Executing ${label} task starts`);
+  const result = await fn();
+  const endTime = performance.now();
+  console.log(`Task ${label} finished in ${Number.parseFloat(endTime - startTime)} milliseconds with sum ${result}`);
+};
+
+const wait = (time) => new Promise((resolve) => setTimeout(() => resolve(time), time * 1000));
+
+const A = (time) => wait(time);
+const B = (time) => wait(time);
+
+const series = async () => {
+  const time1 = await A(1);
+  const time2 = await B(2);
+  return time1 + time2;
+};
+
+const parallel = async () => {
+  const time1 = A(1);
+  const time2 = B(2);
+  const a = await time1;
+  const b = await time2;
+  return a + b;
+};
+
+evaluate(series, 'sequence');
+evaluate(parallel, 'parallel');</code></pre>
+      </section>
+
+      <section>
+        <h2>What you should see</h2>
+        <p>The console should log the two tasks separately, each showing elapsed time and the sum result. The parallel task completes faster because both timers are started before awaiting either one.</p>
+      </section>
+    </main>
+
+    <script>
+      const evaluate = async (fn, label) => {
+        const startTime = performance.now();
+        console.log(`Executing ${label} task starts`);
+        const result = await fn();
+        const endTime = performance.now();
+        console.log(
+          `Task ${label} finished in ${Number.parseFloat(endTime - startTime)} milliseconds with sum ${result}`,
+        );
+      };
+
+      const wait = (time) => {
+        return new Promise((resolve) => {
+          setTimeout(() => {
+            resolve(time);
+          }, time * 1000);
+        });
+      };
+
+      const A = (time) => {
+        return wait(time);
+      };
+
+      const B = (time) => {
+        return wait(time);
+      };
+
+      const series = async () => {
+        let time1 = await A(2);
+        let time2 = await B(3);
+        return time1 + time2;
+      };
+
+      const parallel = async () => {
+        let time1 = A(1);
+        let time2 = B(2);
+        const a = await time1;
+        const b = await time2;
+        return a + b;
+      };
+
+      evaluate(series, 'sequence');
+      evaluate(parallel, 'parallel');
+    </script>
+  </body>
+</html>

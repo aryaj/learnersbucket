@@ -4,20 +4,41 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Sampler Function</title>
+    <style>
+      body { font-family: Arial, sans-serif; margin: 24px; background: #f4f6fb; color: #111827; }
+      main { max-width: 920px; margin: 0 auto; background: white; border-radius: 14px; padding: 24px; box-shadow: 0 18px 40px rgba(15, 23, 42, 0.08); }
+      h1 { margin-bottom: 0.25rem; font-size: 2rem; }
+      p { margin: 0.75rem 0; }
+      pre { background: #111827; color: #e2e8f0; padding: 18px; border-radius: 12px; overflow-x: auto; }
+      code { color: #a5f3fc; }
+      .result { background: #f8fafc; border: 1px solid #cbd5e1; border-radius: 10px; padding: 16px; }
+      .result p { margin: 0.5rem 0; }
+    </style>
   </head>
   <body>
-    <h1>Sampler Function</h1>
-    <p>This example shows a higher-order sampler function that invokes a callback only on every nth call.</p>
-    <p>The returned function increments an internal counter and calls the original function when the counter reaches the threshold.</p>
-    <script>
-      /**
-       * Create a sampler that calls <code>fn</code> every <code>count</code> invocations.
-       *
-       * @param {Function} fn - The callback to sample.
-       * @param {number} count - The number of calls before <code>fn</code> is invoked.
-       * @returns {Function} A function that samples the provided callback.
-       */
-      function samplerFunction(fn, count) {
+    <main>
+      <h1>Sampler Function</h1>
+      <p>This page documents a higher-order function that invokes a callback only once every <code>n</code> calls.</p>
+      <p>The sampler keeps an internal counter and resets it after the callback runs.</p>
+      <section>
+        <h2>Implementation</h2>
+        <pre><code>function samplerFunction(fn, count) {
+  let counter = 0;
+  return function () {
+    if (++counter === count) {
+      fn();
+      counter = 0;
+    }
+  };
+}</code></pre>
+      </section>
+      <section>
+        <h2>Example output</h2>
+        <div class="result" id="result"></div>
+      </section>
+    </main>
+    <script src="common.js"></script>
+    <script>      function samplerFunction(fn, count) {
         let counter = 0;
         return function () {
           if (++counter === count) {
@@ -28,18 +49,14 @@
       }
 
       const message = function () {
-        console.log('This is a message function.');
+        safeLog('This is a message function.');
       };
 
       const sample = samplerFunction(message, 2);
-      sample(); // no output
-      sample(); // outputs message
-      sample(); // no output
-      sample(); // outputs message
-      sample(); // no output
-      sample(); // outputs message
-      sample(); // no output
-      sample(); // outputs message
+      for (let i = 1; i <= 8; i += 1) {
+        sample();
+        safeLog(`Invocation ${i} completed`);
+      }
     </script>
   </body>
 </html>

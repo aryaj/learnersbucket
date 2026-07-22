@@ -1,0 +1,186 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Filter Nested Object</title>
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        margin: 0;
+        padding: 24px;
+        background: #f5f7fb;
+        color: #111827;
+      }
+      .container {
+        max-width: 960px;
+        margin: 0 auto;
+      }
+      .card {
+        background: #ffffff;
+        border: 1px solid #d1d5db;
+        border-radius: 14px;
+        padding: 24px;
+        margin-bottom: 24px;
+        box-shadow: 0 10px 30px rgba(15, 23, 42, 0.06);
+      }
+      h1,
+      h2 {
+        margin-top: 0;
+      }
+      p,
+      li {
+        line-height: 1.7;
+      }
+      pre {
+        background: #f8fafc;
+        border: 1px solid #e2e8f0;
+        border-radius: 12px;
+        padding: 16px;
+        overflow-x: auto;
+      }
+      code {
+        background: #eef2ff;
+        padding: 2px 6px;
+        border-radius: 6px;
+        font-family: Consolas, Monaco, monospace;
+      }
+      button {
+        background: #2563eb;
+        color: white;
+        border: none;
+        padding: 10px 16px;
+        border-radius: 10px;
+        cursor: pointer;
+        font-size: 0.95rem;
+      }
+      .result {
+        margin-top: 16px;
+        padding: 14px;
+        border-radius: 12px;
+        background: #eff6ff;
+        border: 1px solid #dbeafe;
+        white-space: pre-wrap;
+        min-height: 120px;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <div class="card">
+        <h1>Filter Nested Object</h1>
+        <p>
+          This problem focuses on filtering deeply nested objects/arrays based
+          on a predicate while preserving the original shape as needed.
+        </p>
+      </div>
+
+      <div class="card">
+        <h2>Problem Summary</h2>
+        <ul>
+          <li>Accept a nested object/array and a filter condition.</li>
+          <li>Traverse recursively through all levels.</li>
+          <li>Keep only matching values/nodes.</li>
+          <li>Preserve original structure for retained branches.</li>
+          <li>Handle empty branches after filtering.</li>
+        </ul>
+      </div>
+
+      <div class="card">
+        <h2>Solution Approach</h2>
+        <pre><code>// In-place DFS approach (mutates original object):
+      // 1) Iterate each key in current object.
+      // 2) Read value = obj[key].
+      // 3) If value is nested object, recurse first (go deep).
+      // 4) If value is primitive, apply predicate and delete when false.
+      // 5) After recursion returns, delete key if nested object became empty.
+      // 6) Continue until all levels are processed.</code></pre>
+      </div>
+
+      <div class="card">
+        <h2>Implementation Notes</h2>
+        <pre><code>// API shape:
+      // deepFilter(obj, predicate)
+      //
+      // - obj: nested object that will be mutated in-place
+      // - predicate: function for primitive values (returns true/false)
+      // - behavior: removes non-matching primitives + prunes empty nested objects</code></pre>
+      </div>
+
+      <div class="card">
+        <h2>Live Demo Placeholder</h2>
+        <button id="runBtn">Run demo</button>
+        <div id="resultBox" class="result">
+          Add your solution logic, then click Run demo.
+        </div>
+      </div>
+    </div>
+
+    <script>
+      // Revision notes:
+      // 1) This version mutates the original object (in-place filtering).
+      // 2) Recursion first goes deep, then prunes empty nested branches.
+      // 3) Use when in-place mutation is acceptable in interviews.
+
+      const resultBox = document.getElementById("resultBox");
+      const runBtn = document.getElementById("runBtn");
+
+      function log(message) {
+        resultBox.textContent += message + "\n";
+      }
+
+      const obj = {
+        a: 1,
+        b: {
+          c: "Hello World",
+          d: 2,
+          e: {
+            f: {
+              g: -4,
+            },
+          },
+          h: "Good Night Moon",
+        },
+      };
+
+      const filter = (s) => typeof s === "string";
+
+      // STEP 1: Recursive in-place DFS filter.
+      // - obj changes directly as keys get deleted.
+      // - filterFunc runs only for primitive values.
+      const deepFilter = (obj, filterFunc) => {
+        // STEP 2: Iterate keys of the current object level.
+        for (const key in obj) {
+          const val = obj[key];
+
+          // STEP 3: If value is nested object, go deep first.
+          // After recursion returns, val may have become empty.
+          if (val && typeof val === "object" && !Array.isArray(val)) {
+            deepFilter(val, filterFunc);
+          } else {
+            // STEP 4: Primitive branch.
+            // Delete keys whose primitive value does not satisfy predicate.
+            if (filterFunc(val) === false) {
+              delete obj[key];
+            }
+          }
+
+          // STEP 5: Post-recursion pruning.
+          // If nested object became empty, remove that key from parent.
+          if (JSON.stringify(val) === "{}") {
+            delete obj[key];
+          }
+        }
+      };
+
+      runBtn.addEventListener("click", () => {
+        resultBox.textContent = "";
+        log("Running in-place deepFilter (predicate: value is string)");
+        deepFilter(obj, filter);
+        log("Filtered object (mutated input):");
+        log(JSON.stringify(obj, null, 2));
+        console.log("filtered", obj);
+      });
+    </script>
+  </body>
+</html>

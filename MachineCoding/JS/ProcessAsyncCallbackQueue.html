@@ -1,0 +1,422 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Process Async Callback Queue</title>
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        margin: 0;
+        padding: 24px;
+        background: #f5f7fb;
+        color: #111827;
+      }
+      .container {
+        max-width: 920px;
+        margin: 0 auto;
+      }
+      .card {
+        background: #ffffff;
+        border: 1px solid #d1d5db;
+        border-radius: 14px;
+        padding: 24px;
+        margin-bottom: 24px;
+        box-shadow: 0 10px 30px rgba(15, 23, 42, 0.06);
+      }
+      h1,
+      h2 {
+        margin-top: 0;
+      }
+      p {
+        line-height: 1.7;
+        margin: 0 0 16px;
+      }
+      ul,
+      ol {
+        margin: 0 0 16px 20px;
+        line-height: 1.7;
+      }
+      pre {
+        background: #f8fafc;
+        border: 1px solid #e2e8f0;
+        padding: 18px;
+        border-radius: 12px;
+        overflow-x: auto;
+      }
+      code {
+        font-family: Consolas, Monaco, "Andale Mono", "Ubuntu Mono", monospace;
+        background: #eef2ff;
+        padding: 2px 6px;
+        border-radius: 6px;
+      }
+      button {
+        background: #2563eb;
+        border: none;
+        color: white;
+        padding: 12px 20px;
+        border-radius: 10px;
+        cursor: pointer;
+        font-size: 1rem;
+      }
+      .result {
+        margin-top: 16px;
+        padding: 16px;
+        border-radius: 12px;
+        background: #eff6ff;
+        border: 1px solid #dbeafe;
+        white-space: pre-wrap;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <div class="card">
+        <h1>Async Callback Queue Processor</h1>
+        <p>
+          This document explains the Meta frontend interview problem: implement
+          a queue that handles async callbacks with limited concurrency and
+          configurable queue ordering.
+        </p>
+        <h2>Problem summary</h2>
+        <p>
+          The goal is to implement a class <code>QueueCallbacks</code> with the
+          following features:
+        </p>
+        <ul>
+          <li>
+            Allow up to <strong>2</strong> asynchronous callbacks to run at the
+            same time.
+          </li>
+          <li>
+            If a third callback arrives while 2 callbacks are running, queue it.
+          </li>
+          <li>
+            If there are more than <strong>6</strong> callbacks waiting in the
+            queue, drop additional callbacks.
+          </li>
+          <li>
+            By default, process queued callbacks in <strong>FIFO</strong> order.
+          </li>
+          <li>
+            If the constructor receives <code>"LIFO"</code>, process queued
+            callbacks in <strong>LIFO</strong> order.
+          </li>
+        </ul>
+      </div>
+
+      <div class="card">
+        <h2>Step-by-step explanation</h2>
+        <ol>
+          <li>
+            When <code>process(callback)</code> is called and fewer than 2
+            callbacks are currently running, execute the callback immediately.
+          </li>
+          <li>
+            If 2 callbacks are already running, add the callback to the queue
+            instead of executing it.
+          </li>
+          <li>
+            If the queue already contains 6 items, ignore the new callback and
+            do not enqueue it.
+          </li>
+          <li>
+            When a running callback finishes, reduce the active count and then
+            try to execute the next callback from the queue.
+          </li>
+          <li>
+            The next callback is selected using FIFO or LIFO, depending on the
+            constructor argument.
+          </li>
+        </ol>
+        <p>
+          In other words, the queue is only used when the concurrency limit has
+          been reached. Once a callback finishes, queued callbacks are promoted
+          to execution while still respecting the limit of 2 active callbacks.
+        </p>
+      </div>
+
+      <div class="card">
+        <h2>Implementation details</h2>
+        <p>The implementation uses three main concepts:</p>
+        <ul>
+          <li>
+            <code>activeCount</code>: how many async callbacks are currently
+            running.
+          </li>
+          <li>
+            <code>queue</code>: a list of pending callbacks waiting for a free
+            slot.
+          </li>
+          <li>
+            <code>order</code>: whether queued callbacks use FIFO or LIFO
+            ordering.
+          </li>
+        </ul>
+        <pre><code>class QueueCallbacks {
+  constructor(order = 'FIFO') {
+    this.order = order === 'LIFO' ? 'LIFO' : 'FIFO';
+    this.queue = [];
+    this.activeCount = 0;
+    this.maxActive = 2;
+    this.maxQueueSize = 6;
+  }
+
+  async process(callback) {
+    // If there is room, execute immediately.
+    if (this.activeCount < this.maxActive) {
+      this.activeCount += 1;
+      try {
+        await callback();
+      } finally {
+        this.activeCount -= 1;
+        this._processNext();
+      }
+      return;
+    }
+
+    // If concurrency limit is reached, queue the callback if the queue is not full.
+    if (this.queue.length < this.maxQueueSize) {
+      this.queue.push(callback);
+    }
+    // If the queue is full, discard the callback.
+  }
+
+  _processNext() {
+    if (this.activeCount >= this.maxActive || this.queue.length === 0) return;
+
+    const nextCallback = this.order === 'LIFO'
+      ? this.queue.pop()
+      : this.queue.shift();
+
+    if (nextCallback) {
+      this.process(nextCallback);
+    }
+  }
+}</code></pre>
+      </div>
+
+      <div class="card">
+        <h2>How the implementation satisfies the prompt</h2>
+        <p>Each rule is handled explicitly:</p>
+        <ul>
+          <li>
+            Up to 2 running callbacks: managed by <code>activeCount</code> and
+            <code>maxActive</code>.
+          </li>
+          <li>
+            Queueing when 2 callbacks are running: handled by the else branch in
+            <code>process()</code>.
+          </li>
+          <li>
+            Max queue size of 6: checked before pushing onto <code>queue</code>.
+          </li>
+          <li>
+            Default FIFO order: set in the constructor when no or invalid
+            argument is passed.
+          </li>
+          <li>
+            LIFO when requested: selected by the <code>order</code> field and
+            <code>pop()</code> in <code>_processNext()</code>.
+          </li>
+        </ul>
+      </div>
+
+      <div class="card">
+        <h2>Live demo</h2>
+        <p>
+          Click the button to run example tasks. You will see the order in which
+          tasks start and finish, and how the queue handles pending callbacks.
+        </p>
+        <button id="runBtn">Run queue demo</button>
+        <div class="result" id="resultBox">No demo run yet.</div>
+      </div>
+    </div>
+
+    <script>
+      class QueueCallbacks {
+        constructor(order = "FIFO") {
+          // Determine processing order: FIFO by default, LIFO only when requested.
+          this.order = order === "LIFO" ? "LIFO" : "FIFO";
+          // Pending callback queue.
+          this.queue = [];
+          // Number of currently running callbacks.
+          this.activeCount = 0;
+          // Maximum allowed concurrent callbacks.
+          this.maxActive = 2;
+          // Maximum allowed callbacks waiting in queue.
+          this.maxQueueSize = 6;
+        }
+
+        async process(callback) {
+          // If we have capacity, run the callback immediately.
+          if (this.activeCount < this.maxActive) {
+            this.activeCount += 1;
+            try {
+              // Execute the asynchronous callback.
+              await callback();
+            } finally {
+              // When the callback finishes, free a slot.
+              this.activeCount -= 1;
+              // Try to start the next queued callback.
+              this._processNext();
+            }
+            return;
+          }
+
+          // If we are already at max concurrency, queue the callback if there is room.
+          if (this.queue.length < this.maxQueueSize) {
+            this.queue.push(callback);
+            this._log(`Queued callback (queue size: ${this.queue.length})`);
+          } else {
+            // When the queue is full, drop the incoming callback instead of enqueueing it.
+            this._log("Discarded callback because queue is full");
+          }
+        }
+
+        _processNext() {
+          // Only start a queued callback when there is a free concurrency slot.
+          if (this.activeCount >= this.maxActive || this.queue.length === 0)
+            return;
+
+          // Choose next queued callback based on the configured order.
+          const nextCallback =
+            this.order === "LIFO" ? this.queue.pop() : this.queue.shift();
+
+          if (nextCallback) {
+            // Process the next callback as if it were newly submitted.
+            this.process(nextCallback);
+          }
+        }
+
+        _log(message) {
+          const resultBox = document.getElementById("resultBox");
+          resultBox.textContent += message + "\n";
+        }
+      }
+
+      const resultBox = document.getElementById("resultBox");
+      const runBtn = document.getElementById("runBtn");
+
+      const sleepTask = (ms, label) => () =>
+        new Promise((resolve) => {
+          const queue = runBtn._queueInstance;
+          queue._log(`Start ${label} (${ms}ms)`);
+          setTimeout(() => {
+            queue._log(`Finish ${label}`);
+            resolve();
+          }, ms);
+        });
+
+      function resetLog() {
+        resultBox.textContent = "";
+      }
+
+      runBtn.addEventListener("click", () => {
+        resetLog();
+        const queue = new QueueCallbacks("FIFO");
+        runBtn._queueInstance = queue;
+        queue._log("Using order: " + queue.order);
+        queue._log("Submitting 7 tasks...");
+
+        const tasks = [
+          sleepTask(2000, "A"),
+          sleepTask(1600, "B"),
+          sleepTask(1200, "C"),
+          sleepTask(800, "D"),
+          sleepTask(600, "E"),
+          sleepTask(400, "F"),
+          sleepTask(200, "G"),
+        ];
+
+        tasks.forEach((task, index) => {
+          queue._log(`Submitted task ${index + 1}`);
+          queue.process(task);
+        });
+      });
+
+      /* const QueueCallbacks = function (order = "FIFO") {
+        this.order = order;
+        this.callBackQueue = [];
+        this.ongoingExecutions = 0;
+
+        this.process = (callback) => {
+          if (this.ongoingExecutions < 2) {
+            this.ongoingExecutions++;
+            callback()
+              .then((i) => console.log(i))
+              .finally(() => {
+                this.ongoingExecutions--;
+                executeNext();
+              });
+          } else {
+            if(this.callBackQueue.length < 6){
+              this.callBackQueue.push(callback);
+            }
+          }
+        };
+
+        const executeNext = () => {
+           if( this.callBackQueue.length > 0 && this.ongoingExecutions < 2){
+            let nextCallback = this.order === 'LIFO' ? this.callBackQueue.pop() : this.callBackQueue.shift();
+            this.process(nextCallback);
+           }
+        };
+      };
+
+      let dummyApi = (index) => {
+        return () =>{
+          return new Promise((resolve,reject)=> {
+            setTimeout(()=>{
+              resolve(index)
+            },[1000 * index])
+          })
+        }
+      }
+
+      const asyncCallbacks = new QueueCallbacks();
+      asyncCallbacks.process(dummyApi(1))
+      asyncCallbacks.process(dummyApi(2))
+      asyncCallbacks.process(dummyApi(3))
+      asyncCallbacks.process(dummyApi(4))
+      asyncCallbacks.process(dummyApi(5))
+      asyncCallbacks.process(dummyApi(6))
+      asyncCallbacks.process(dummyApi(7))
+      asyncCallbacks.process(dummyApi(8))
+      asyncCallbacks.process(dummyApi(9)) */
+
+      /* let dummyApi = (index) => {
+        return () =>{
+          return new Promise((resolve,reject)=> {
+            console.log(index);
+            setTimeout(()=>{
+               resolve(index)
+            },[1000 * index])
+          })
+        }
+      }
+
+      const tasks = [
+        dummyApi(1),
+        dummyApi(2),
+        dummyApi(3),
+        dummyApi(4),
+        dummyApi(5),
+        dummyApi(6),
+        dummyApi(7),
+      ];
+
+      // tasks.map(task => task().then(res => console.log(res)));
+      
+      async function runSequentially(){
+        for(const task of tasks){
+          const result = await task();
+          console.log(result)
+        }
+      }
+
+      runSequentially() */
+      
+    </script>
+  </body>
+</html>

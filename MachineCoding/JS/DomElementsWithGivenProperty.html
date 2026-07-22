@@ -1,0 +1,221 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>DOM Elements With Given Property</title>
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        margin: 0;
+        padding: 24px;
+        background: #f5f7fb;
+        color: #111827;
+      }
+      .container {
+        max-width: 960px;
+        margin: 0 auto;
+      }
+      .card {
+        background: #ffffff;
+        border: 1px solid #d1d5db;
+        border-radius: 14px;
+        padding: 24px;
+        margin-bottom: 24px;
+        box-shadow: 0 10px 30px rgba(15, 23, 42, 0.06);
+      }
+      h1,
+      h2 {
+        margin-top: 0;
+      }
+      p,
+      li {
+        line-height: 1.7;
+      }
+      pre {
+        background: #f8fafc;
+        border: 1px solid #e2e8f0;
+        border-radius: 12px;
+        padding: 16px;
+        overflow-x: auto;
+      }
+      code {
+        background: #eef2ff;
+        padding: 2px 6px;
+        border-radius: 6px;
+        font-family: Consolas, Monaco, monospace;
+      }
+      button {
+        background: #2563eb;
+        color: white;
+        border: none;
+        padding: 10px 16px;
+        border-radius: 10px;
+        cursor: pointer;
+        font-size: 0.95rem;
+      }
+      .result {
+        margin-top: 16px;
+        padding: 14px;
+        border-radius: 12px;
+        background: #eff6ff;
+        border: 1px solid #dbeafe;
+        white-space: pre-wrap;
+      }
+      .demo-root {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+        padding: 16px;
+        background: #f8fafc;
+        border: 1px solid #e2e8f0;
+        border-radius: 12px;
+      }
+      .demo-root span {
+        display: inline-block;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <div class="card">
+        <h1>Find DOM Elements by Color</h1>
+        <p>
+          This question is about traversing the DOM tree and collecting every element whose effective color matches a given color value.
+        </p>
+      </div>
+
+      <div class="card">
+        <h2>Problem Summary</h2>
+        <p>
+          Given a root element and a color like <code>red</code>, find all descendant elements whose computed color matches that color.
+        </p>
+        <ul>
+          <li>Start from a parent element.</li>
+          <li>Visit each child recursively.</li>
+          <li>Check the current element's computed style.</li>
+          <li>Collect elements whose color matches the target.</li>
+        </ul>
+      </div>
+
+      <div class="card">
+        <h2>How the solution works</h2>
+        <ol>
+          <li>
+            <code>getComputedColorCode(colorCode)</code> creates a temporary element and applies the given color to it. This lets the browser normalize the value to a standard format like <code>rgb(255, 0, 0)</code>.
+          </li>
+          <li>
+            <code>findElementByColor(root, colorCode)</code> starts with the given root and recursively walks every descendant.
+          </li>
+          <li>
+            For each element, it reads the computed color using <code>window.getComputedStyle(node).color</code> and compares it to the target color.
+          </li>
+          <li>
+            When a match is found, the element is pushed into an array that is returned at the end.
+          </li>
+        </ol>
+      </div>
+
+      <div class="card">
+        <h2>Implementation</h2>
+        <pre><code>function getComputedColorCode(colorCode) {
+  const temp = document.createElement('div');
+  temp.style.color = colorCode;
+  document.body.appendChild(temp);
+  const computedColor = window.getComputedStyle(temp).color;
+  document.body.removeChild(temp);
+  return computedColor;
+}
+
+function findElementByColor(root, colorCode) {
+  const targetColor = getComputedColorCode(colorCode);
+  const output = [];
+
+  function search(node) {
+    if (!node || node.nodeType !== Node.ELEMENT_NODE) return;
+
+    if (window.getComputedStyle(node).color === targetColor) {
+      output.push(node);
+    }
+
+    for (const child of node.children) {
+      search(child);
+    }
+  }
+
+  search(root);
+  return output;
+}</code></pre>
+      </div>
+
+      <div class="card">
+        <h2>Live Demo</h2>
+        <div id="root" class="demo-root" style="color: #fff">
+          <span style="color: red">Red</span>
+          <span style="color: orange">Orange</span>
+          <span style="color: #f00">Red</span>
+          <span style="color: #ff0000">Red</span>
+          <span style="color: rgb(255, 0, 0)">Red</span>
+          <span style="color: rgb(0, 0, 0)">Black</span>
+          <div style="color: red">
+            Nested red text
+            <span style="color: inherit">Inherited red text</span>
+          </div>
+        </div>
+        <button id="runBtn" style="margin-top: 16px;">Find matching elements</button>
+        <div id="resultBox" class="result">Click the button to run the demo.</div>
+      </div>
+    </div>
+
+    <script>
+      // This helper converts any CSS color input into the browser's normalized format.
+      // Example: 'red', '#f00', and 'rgb(255, 0, 0)' all become 'rgb(255, 0, 0)'.
+      function getComputedColorCode(colorCode) {
+        const temp = document.createElement('div');
+        temp.style.color = colorCode;
+        document.body.appendChild(temp);
+
+        const computedColor = window.getComputedStyle(temp).color;
+
+        document.body.removeChild(temp);
+        return computedColor;
+      }
+
+      // This function walks the DOM tree and collects every element whose effective color matches the target.
+      function findElementByColor(root, colorCode) {
+        const targetColor = getComputedColorCode(colorCode);
+        const output = [];
+
+        // Recursive helper that checks one node and then visits all of its children.
+        function search(node) {
+          if (!node || node.nodeType !== Node.ELEMENT_NODE) return;
+
+          // Read the element's computed style so the browser resolves inherited and shorthand values.
+          const currentColor = window.getComputedStyle(node).color;
+
+          if (currentColor === targetColor) {
+            output.push(node);
+          }
+
+          for (const child of node.children) {
+            search(child);
+          }
+        }
+
+        search(root);
+        return output;
+      }
+
+      const runBtn = document.getElementById('runBtn');
+      const resultBox = document.getElementById('resultBox');
+
+      runBtn.addEventListener('click', () => {
+        const matches = findElementByColor(document.getElementById('root'), 'red');
+        const summary = matches.map((node) => `${node.tagName.toLowerCase()}: ${node.textContent.trim()}`);
+        resultBox.textContent = summary.length
+          ? summary.join('\n')
+          : 'No matching elements found.';
+      });
+    </script>
+  </body>
+</html>

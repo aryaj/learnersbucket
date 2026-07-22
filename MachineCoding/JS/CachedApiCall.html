@@ -1,0 +1,178 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Cached API Call</title>
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        margin: 0;
+        padding: 24px;
+        background: #f5f7fb;
+        color: #111827;
+      }
+      .container {
+        max-width: 960px;
+        margin: 0 auto;
+      }
+      .card {
+        background: #ffffff;
+        border: 1px solid #d1d5db;
+        border-radius: 14px;
+        padding: 24px;
+        margin-bottom: 24px;
+        box-shadow: 0 10px 30px rgba(15, 23, 42, 0.06);
+      }
+      h1,
+      h2 {
+        margin-top: 0;
+      }
+      p,
+      li {
+        line-height: 1.7;
+      }
+      pre {
+        background: #f8fafc;
+        border: 1px solid #e2e8f0;
+        border-radius: 12px;
+        padding: 16px;
+        overflow-x: auto;
+      }
+      code {
+        background: #eef2ff;
+        padding: 2px 6px;
+        border-radius: 6px;
+        font-family: Consolas, Monaco, monospace;
+      }
+      button {
+        background: #2563eb;
+        color: white;
+        border: none;
+        padding: 10px 16px;
+        border-radius: 10px;
+        cursor: pointer;
+        font-size: 0.95rem;
+      }
+      .result {
+        margin-top: 16px;
+        padding: 14px;
+        border-radius: 12px;
+        background: #eff6ff;
+        border: 1px solid #dbeafe;
+        white-space: pre-wrap;
+        min-height: 120px;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <div class="card">
+        <h1>Cached API Call</h1>
+        <p>
+          This example demonstrates how to wrap <code>fetch</code> with a simple cache so repeated requests within a given time window return the cached result instead of hitting the network again.
+        </p>
+      </div>
+
+      <div class="card">
+        <h2>Problem Summary</h2>
+        <ul>
+          <li>Accept a TTL value in milliseconds.</li>
+          <li>Create a reusable wrapper that can be called multiple times.</li>
+          <li>Use a cache key based on the URL and request config.</li>
+          <li>If a fresh entry exists and is still valid, return the cached value.</li>
+          <li>Otherwise, make a network request and store the response.</li>
+        </ul>
+      </div>
+
+      <div class="card">
+        <h2>Implementation Idea</h2>
+        <pre><code>function createCachedApiCall(ttl) {
+  const cache = new Map();
+
+  return async function(url, config = {}) {
+    const key = `${url}|${JSON.stringify(config)}`;
+    const now = Date.now();
+    const entry = cache.get(key);
+
+    if (entry && now < entry.expiry) {
+      return { data: entry.value, source: 'cache' };
+    }
+
+    const response = await fetch(url, config);
+    const data = await response.json();
+
+    cache.set(key, { value: data, expiry: now + ttl });
+    return { data, source: 'network' };
+  };
+}</code></pre>
+      </div>
+
+      <div class="card">
+        <h2>Live Demo</h2>
+        <p>
+          The demo below calls the same endpoint three times. The first result is fetched from the network, the second one should come from cache, and the third one should become fresh again after the TTL expires.
+        </p>
+        <button id="runBtn">Run demo</button>
+        <div class="result" id="resultBox">Click the button to start the demo.</div>
+      </div>
+    </div>
+
+    <script>
+      function createCachedApiCall(ttl) {
+        const cache = new Map();
+
+        return async function (url, config = {}) {
+          const cacheKey = `${url}|${JSON.stringify(config)}`;
+          const now = Date.now();
+          const entry = cache.get(cacheKey);
+
+          if (entry && now < entry.expiry) {
+            return { data: entry.value, source: 'cache' };
+          }
+
+          const response = await fetch(url, config);
+          const data = await response.json();
+
+          cache.set(cacheKey, {
+            value: data,
+            expiry: now + ttl,
+          });
+
+          return { data, source: 'network' };
+        };
+      }
+
+      const resultBox = document.getElementById('resultBox');
+      const runBtn = document.getElementById('runBtn');
+
+      function log(message) {
+        resultBox.textContent += message + '\n';
+      }
+
+      function delay(ms) {
+        return new Promise((resolve) => setTimeout(resolve, ms));
+      }
+
+      runBtn.addEventListener('click', async () => {
+        resultBox.textContent = '';
+        const callApi = createCachedApiCall(1500);
+        const url = 'https://jsonplaceholder.typicode.com/users/1';
+
+        log('Call 1');
+        const first = await callApi(url);
+        log(`1 -> ${first.source}: ${first.data.name}`);
+
+        await delay(800);
+        log('Call 2');
+        const second = await callApi(url);
+        log(`2 -> ${second.source}: ${second.data.name}`);
+
+        await delay(1800);
+        log('Call 3');
+        const third = await callApi(url);
+        log(`3 -> ${third.source}: ${third.data.name}`);
+      });
+    </script>
+  </body>
+</html>

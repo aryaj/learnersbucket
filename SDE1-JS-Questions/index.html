@@ -1,0 +1,108 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>SDE1 JS Questions</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Fira+Code:wght@400;500&display=swap" rel="stylesheet" />
+    <style>
+      /* Light, minimal theme */
+      *{box-sizing:border-box;margin:0;padding:0}
+      body{font-family:Inter,Arial,sans-serif;background:#f6f8fa;color:#0f172a;min-height:100vh;display:flex}
+      .sidebar{width:320px;background:#fff;padding:18px;height:100vh;overflow:auto;border-right:1px solid #e6eef7}
+      .sidebar-header h1{font-size:1.25rem;margin-bottom:4px}
+      .sidebar-header p{font-size:0.85rem;color:#64748b}
+      .question-list{padding:8px}
+      .question-item{padding:12px;border-radius:8px;cursor:pointer;margin-bottom:8px;background:#fbfdff;border:1px solid #e6eef7}
+      .question-item:hover{background:#f1f6ff}
+      .question-item.active{background:linear-gradient(135deg,rgba(59,130,246,0.08),rgba(139,92,246,0.06));border-color:rgba(59,130,246,0.12)}
+      .main-content{flex:1;display:flex;flex-direction:column}
+      .panel-header{padding:12px 20px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid #f1f5f9}
+      pre{padding:20px;font-family:'Fira Code',monospace;background:#fff;border:1px solid #e6eef7;border-radius:8px;white-space:pre-wrap;color:#0f172a}
+      .output-content{flex:1;overflow:auto;padding:16px 20px;background:#fff;border:1px solid #e6eef7;border-radius:8px;margin-top:12px}
+      .run-btn{padding:8px 14px;background:#2563eb;color:#fff;border:none;border-radius:8px;cursor:pointer}
+      .no-output{color:#64748b}
+    </style>
+    <script src="common.js"></script>
+  </head>
+  <body>
+    <aside class="sidebar">
+      <div class="sidebar-header">
+        <h1>📚 SDE1 JS Questions</h1>
+        <p>Practice JavaScript concepts</p>
+      </div>
+      <div class="question-list" id="questionList"></div>
+    </aside>
+
+    <main class="main-content">
+      <div class="panel-header">
+        <h2 id="fileName">Select a question</h2>
+        <button class="run-btn" onclick="runCode()">▶ Run Code</button>
+      </div>
+      <div style="padding:20px">
+        <pre id="codeDisplay">Click on a question from the sidebar to view its code and run it.</pre>
+        <div class="output-content" id="outputContent"><div class="no-output">No output yet. Run the code to see results.</div></div>
+      </div>
+    </main>
+
+    <script>
+      const questions = [
+        { id: 1, name: "Curry-1", file: "Curry-1.html", desc: "Function currying implementation" },
+        { id: 2, name: "Debounce", file: "Debounce.html", desc: "Debounce function for rate limiting" },
+        { id: 3, name: "FlattenArray", file: "FlattenArray.html", desc: "Flatten nested arrays" },
+        { id: 4, name: "HexToRGB", file: "HexToRGB.html", desc: "Convert hex color to RGB" },
+        { id: 5, name: "MethodChaining-1", file: "MethodChaining-1.html", desc: "Method chaining pattern" },
+        { id: 6, name: "Pipe", file: "Pipe.html", desc: "Pipe function for composition" },
+        { id: 7, name: "Publisher-Subscriber", file: "Publisher-Subcriber(ObservablePatter).html", desc: "Observer pattern implementation" },
+        { id: 8, name: "RemoveCycleFromObject", file: "RemoveCycleFromObject.html", desc: "Remove circular references" },
+        { id: 9, name: "SamplerFunction", file: "SamplerFunction.html", desc: "Sampling function implementation" },
+        { id: 10, name: "Throttling", file: "Throttling.html", desc: "Throttle function for events" },
+        { id: 11, name: "ToggleFunction", file: "ToggleFunction.html", desc: "Toggle state implementation" },
+        { id: 12, name: "clearAllTimeOut", file: "clearAllTimeOut.html", desc: "Clear all timeouts" },
+        { id: 13, name: "MemoizeFunction", file: "MemoizeFunction.html", desc: "Memoize Function" },
+      { id: 14, name: "ArrayIterator", file: "ArrayIterator.html", desc: "Manual array iterator with next/done" },
+      { id: 15, name: "Polyfill-ArrayFilter", file: "Polyfill-ArrayFilter.html", desc: "Array.filter polyfill" },
+      { id: 16, name: "Polyfill-groupBy", file: "Polyfill-groupBy().html", desc: "Group array values by key" },
+      { id: 17, name: "Polyfill-Promise.All", file: "Polyfill-Promise.All.html", desc: "Promise.all polyfill" },
+      { id: 18, name: "Polyfill-Promise.Any", file: "Polyfill-Promise.Any.html", desc: "Promise.any polyfill with AggregateError handling" },
+      { id: 19, name: "SumUpFunctionsReturnedValue", file: "SumUpFunctionsReturnedValue.html", desc: "Compare sequential and parallel async execution" },
+      ];
+
+      function initSidebar(){
+
+        const list = document.getElementById('questionList');
+        list.innerHTML = questions.map((q,idx)=>`<div class="question-item" onclick="loadQuestion(${idx})"><h3>${q.name}</h3><p style="font-size:12px;color:#64748b">${q.desc}</p></div>`).join('');
+      }
+
+      function loadQuestion(index){
+        const q = questions[index];
+        document.getElementById('fileName').textContent = q.name;
+        document.querySelectorAll('.question-item').forEach((el,i)=> el.classList.toggle('active', i===index));
+        fetch(q.file).then(r=> r.ok? r.text(): Promise.reject(r.status)).then(html => {
+          const doc = new DOMParser().parseFromString(html,'text/html');
+          const script = Array.from(doc.querySelectorAll('script')).find(s=>!s.src && s.textContent.trim());
+          if(script) currentCode = script.textContent; else currentCode = '// No script found';
+          document.getElementById('codeDisplay').textContent = currentCode;
+          clearOutput();
+        }).catch(()=>{document.getElementById('codeDisplay').textContent = 'Error loading file'; currentCode=null; clearOutput()});
+      }
+
+      function runCode(){
+        if(!currentCode){ addLog('error','No code to run. Select a question first.'); return }
+        clearOutput(); addLog('info','▶ Running code...');
+        const consoleProxy = { log:(...a)=> addLog('log', a.map(formatValue).join(' ')), warn:(...a)=> addLog('warn', a.map(formatValue).join(' ')), error:(...a)=> addLog('error', a.map(formatValue).join(' ')), info:(...a)=> addLog('info', a.map(formatValue).join(' ')) };
+        try{ const runFn = new Function('console','safeLog', currentCode); runFn(consoleProxy, safeLog); addLog('info','✓ Code executed successfully') }catch(e){ addLog('error','Error: '+e.message) }
+      }
+
+      function addLog(type, message){ const out = document.getElementById('outputContent'); const no = out.querySelector('.no-output'); if(no) no.remove(); const el = document.createElement('div'); el.className='log-entry '+type; el.style.padding='8px'; el.style.borderBottom='1px solid #f1f5f9'; el.innerHTML = `<div style="font-size:12px;color:#64748b">${new Date().toLocaleTimeString()}</div><div>${escapeHtml(message)}</div>`; out.appendChild(el); out.scrollTop = out.scrollHeight }
+
+      function clearOutput(){ document.getElementById('outputContent').innerHTML = '<div class="no-output">No output yet. Run the code to see results.</div>' }
+      function escapeHtml(t){ const d=document.createElement('div'); d.textContent=t; return d.innerHTML }
+      function formatValue(v){ if(v===null) return 'null'; if(v===undefined) return 'undefined'; if(typeof v==='object') try{return JSON.stringify(v,null,2)}catch(e){return String(v)} return String(v) }
+
+      initSidebar();
+    </script>
+  </body>
+</html>

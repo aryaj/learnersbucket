@@ -1,0 +1,91 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Polyfill - Promise.all</title>
+    <style>
+      body { font-family: Inter, Arial, sans-serif; margin: 24px; background: #f4f6fb; color: #111827; }
+      main { max-width: 900px; margin: 0 auto; background: white; border-radius: 16px; padding: 28px; box-shadow: 0 18px 40px rgba(15,23,42,0.08); }
+      h1 { margin-bottom: 0.5rem; font-size: 2rem; }
+      p { margin: 0.9rem 0; line-height: 1.7; }
+      section { margin-top: 1.75rem; }
+      pre { background: #0f172a; color: #f8fafc; padding: 18px; border-radius: 12px; overflow-x: auto; }
+      code { color: #a5f3fc; }
+      .result { background: #f8fafc; border: 1px solid #cbd5e1; border-radius: 12px; padding: 18px; }
+      .result p { margin: 0.75rem 0; }
+    </style>
+  </head>
+  <body>
+    <main>
+      <h1>Polyfill - Promise.all</h1>
+      <p>This example implements a simplified version of <code>Promise.all</code>. It accepts an array of promises, waits until all of them resolve, and returns a new promise with results in the original order.</p>
+      <section>
+        <h2>How it works</h2>
+        <p>The polyfill creates a result array and tracks completed promises. Each promise is attached with <code>.then</code> and <code>.catch</code>. When all promises have resolved, the polyfill resolves with the collected values. If any promise rejects, the polyfill rejects immediately.</p>
+      </section>
+      <section>
+        <h2>Implementation</h2>
+        <pre><code>function PromiseAllPolyfill(arr) {
+  const result = [];
+  let completed = 0;
+
+  return new Promise((resolve, reject) => {
+    arr.forEach((promise, index) => {
+      promise
+        .then((value) => {
+          result[index] = value;
+          completed += 1;
+          if (completed === arr.length) {
+            resolve(result);
+          }
+        })
+        .catch(reject);
+    });
+  });
+}</code></pre>
+      </section>
+      <section class="result">
+        <h2>Example output</h2>
+        <div id="result"></div>
+      </section>
+    </main>
+
+    <script src="common.js"></script>
+    <script>
+      function PromiseAllPolyfill(arr) {
+        const result = [];
+        let promiseCompleted = 0;
+
+        return new Promise((resolve, reject) => {
+          arr.forEach((element, index) => {
+            element
+              .then((res) => {
+                result[index] = res;
+                promiseCompleted += 1;
+
+                if (promiseCompleted === arr.length) {
+                  resolve(result);
+                }
+              })
+              .catch((err) => reject(err));
+          });
+        });
+      }
+
+      const task = function (time) {
+        return new Promise((resolve) => {
+          setTimeout(() => {
+            resolve(time);
+          }, time);
+        });
+      };
+
+      const taskList = [task(100), task(200), task(300)];
+
+      PromiseAllPolyfill(taskList)
+        .then((res) => safeLog(`Resolved values: ${JSON.stringify(res)}`))
+        .catch((err) => safeLog(`Rejected: ${err}`));
+    </script>
+  </body>
+</html>

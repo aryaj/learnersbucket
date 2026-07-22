@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Currying Part 5</title>
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        background: #f4f7fb;
+        color: #0f172a;
+        padding: 24px;
+      }
+      .box {
+        background: #ffffff;
+        border: 1px solid #dbeafe;
+        border-radius: 12px;
+        padding: 24px;
+        max-width: 780px;
+        margin: 0 auto;
+        box-shadow: 0 10px 30px rgba(15, 23, 42, 0.08);
+      }
+      h1 {
+        margin-bottom: 8px;
+      }
+      p {
+        line-height: 1.7;
+        color: #475569;
+      }
+      pre {
+        background: #f8fbff;
+        border: 1px solid #e2e8f0;
+        padding: 16px;
+        border-radius: 10px;
+        overflow-x: auto;
+      }
+      button {
+        margin-top: 16px;
+        padding: 10px 16px;
+        border: none;
+        border-radius: 8px;
+        background: #2563eb;
+        color: #ffffff;
+        cursor: pointer;
+      }
+      .result {
+        margin-top: 18px;
+        padding: 16px;
+        border-radius: 10px;
+        background: #eff6ff;
+        border: 1px solid #dbeafe;
+      }
+    </style>
+</head>
+<body>
+    <div class="box">
+      <h1>Currying Part 5</h1>
+      <p>
+        This page demonstrates a simple currying pattern in JavaScript. The
+        <code>generateSum</code> function returns a curried helper that collects
+        arguments until the requested <code>limit</code> is reached.
+      </p>
+      <p>
+        If the current call does not provide enough values, the helper returns a
+        new function that accepts more arguments and continues collecting them.
+      </p>
+
+      <section>
+        <h2>How the currying implementation works</h2>
+        <pre><code>function generateSum(limit) {
+  function helper(...args) {
+    if (args.length >= limit) {
+      const allowedArgs = args.slice(0, limit);
+      return allowedArgs.reduce((prev, curr) => prev + curr, 0);
+    }
+
+    return (...args2) => helper(...args, ...args2);
+  }
+
+  return helper;
+}
+        </code></pre>
+      </section>
+
+      <button id="runBtn">Run Currying Demo</button>
+      <div class="result" id="resultBox">
+        Click the button to execute the currying examples and see output.
+      </div>
+    </div>
+
+    <script>
+      const runBtn = document.getElementById("runBtn");
+      const resultBox = document.getElementById("resultBox");
+
+      /**
+       * generateSum creates a curried function that waits until the total number
+       * of arguments reaches `limit`, then returns their sum.
+       *
+       * @param {number} limit Number of values required to compute the sum
+       * @returns {Function} a curried helper function
+       */
+      function generateSum(limit) {
+        function helper(...args) {
+          // When enough arguments are collected, compute the sum.
+          if (args.length >= limit) {
+            const allowedArgs = args.slice(0, limit);
+            return allowedArgs.reduce((prev, curr) => prev + curr, 0);
+          }
+
+          // Otherwise, return a function that accepts more arguments.
+          return (...args2) => helper(...args, ...args2);
+        }
+
+        return helper;
+      }
+
+      const sum = generateSum(5);
+
+      const firstResult = sum(1)(2)(3)(4); // Collects fewer than 5 values and returns a function
+      const secondResult = sum(1, 2, 3, 4)(6); // Collects 5+ values and sums first 5 values
+
+      runBtn.addEventListener("click", () => {
+        resultBox.innerHTML = `
+          <strong>Example 1:</strong> <code>sum(1)(2)(3)(4)</code><br>
+          Result: <strong>${typeof firstResult === "function" ? "Function returned (more args needed)" : firstResult}</strong><br><br>
+          <strong>Example 2:</strong> <code>sum(1, 2, 3, 4)(6)</code><br>
+          Result: <strong>${secondResult}</strong>
+        `;
+      });
+    </script>
+</body>
+</html>

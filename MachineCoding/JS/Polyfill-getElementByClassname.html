@@ -1,0 +1,304 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Polyfill: getElementByClassname</title>
+    <style>
+      :root {
+        color-scheme: light;
+        --bg: #f4f7ff;
+        --surface: #ffffff;
+        --surface-2: #f8faff;
+        --border: #dce7f7;
+        --text: #14213d;
+        --muted: #64748b;
+        --accent: #2563eb;
+        --accent-2: #3b82f6;
+        --accent-soft: #dbeafe;
+        --shadow: 0 14px 40px rgba(15, 23, 42, 0.08);
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      body {
+        font-family: Inter, Arial, sans-serif;
+        margin: 0;
+        padding: 24px;
+        background: linear-gradient(135deg, var(--bg), #eef4ff);
+        color: var(--text);
+      }
+      .container {
+        max-width: 1000px;
+        margin: 0 auto;
+      }
+      .card {
+        background: var(--surface);
+        border: 1px solid var(--border);
+        border-radius: 18px;
+        padding: 24px;
+        margin-bottom: 20px;
+        box-shadow: var(--shadow);
+      }
+      .hero {
+        background: linear-gradient(135deg, #eff6ff, #ffffff);
+        border: 1px solid #c9dcff;
+      }
+      h1,
+      h2 {
+        margin-top: 0;
+        color: #0f172a;
+      }
+      h1 {
+        font-size: 1.7rem;
+        margin-bottom: 10px;
+      }
+      h2 {
+        font-size: 1.1rem;
+        margin-bottom: 10px;
+      }
+      p,
+      li {
+        line-height: 1.7;
+        color: var(--muted);
+      }
+      pre {
+        background: var(--surface-2);
+        border: 1px solid var(--border);
+        border-radius: 12px;
+        padding: 16px;
+        overflow-x: auto;
+        font-size: 0.95rem;
+      }
+      code {
+        background: var(--accent-soft);
+        padding: 2px 6px;
+        border-radius: 6px;
+        font-family: Consolas, Monaco, monospace;
+      }
+      button {
+        background: linear-gradient(135deg, var(--accent), var(--accent-2));
+        color: white;
+        border: none;
+        padding: 10px 16px;
+        border-radius: 999px;
+        cursor: pointer;
+        font-size: 0.95rem;
+        font-weight: 600;
+        transition:
+          transform 0.2s ease,
+          box-shadow 0.2s ease;
+        box-shadow: 0 8px 18px rgba(37, 99, 235, 0.22);
+      }
+      button:hover {
+        transform: translateY(-1px);
+      }
+      .result {
+        margin-top: 16px;
+        padding: 14px;
+        border-radius: 12px;
+        background: linear-gradient(135deg, #eff6ff, #f8fbff);
+        border: 1px solid #cfe0ff;
+        white-space: pre-wrap;
+        min-height: 150px;
+        color: #0f172a;
+        box-shadow: inset 0 1px 2px rgba(15, 23, 42, 0.04);
+      }
+      .demo-zone {
+        border: 1px dashed #93c5fd;
+        border-radius: 14px;
+        padding: 18px;
+        margin-top: 8px;
+        background: linear-gradient(135deg, #f8fbff, #f0f7ff);
+      }
+      .demo-title {
+        font-size: 0.95rem;
+        font-weight: 600;
+        margin-bottom: 8px;
+        color: #1d4ed8;
+      }
+      .demo-tree {
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+        padding: 12px;
+        border-radius: 12px;
+        background: white;
+        border: 1px solid #e4ecf8;
+      }
+      .node {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        padding: 8px 10px;
+        border-radius: 999px;
+        background: #e2e8f0;
+        font-size: 13px;
+        color: #334155;
+        width: fit-content;
+      }
+      .node.active {
+        background: #bfdbfe;
+        color: #1e3a8a;
+      }
+      .nested {
+        margin-left: 20px;
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+      }
+      .pill-row {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <div class="card">
+        <h1>Polyfill: getElementByClassname</h1>
+        <p>
+          Implement a custom version of class-based element search without using
+          <code>document.getElementsByClassName</code> directly.
+        </p>
+      </div>
+
+      <div class="card">
+        <h2>Problem Summary</h2>
+        <ul>
+          <li>Input: class name string.</li>
+          <li>Output: all DOM elements that contain that class.</li>
+          <li>
+            Support multi-class elements (space-separated class attribute).
+          </li>
+          <li>Do not use the native getElementsByClassName API.</li>
+          <li>Return consistent array-like results for easy testing.</li>
+        </ul>
+      </div>
+
+      <div class="card">
+        <h2>Approach (Step By Step)</h2>
+        <pre><code>// STEP 1: Start from the given root element.
+// STEP 2: Check whether the current node contains the target class.
+// STEP 3: If yes, add the node to the result array.
+// STEP 4: Recurse into each child element.
+// STEP 5: Merge all child results into the current result.
+// STEP 6: Return the full result array.
+//
+// Why this works:
+// A DFS traversal visits every descendant node exactly once.
+// Each node is checked independently, so the logic is simple and clear.
+//
+// Complexity:
+// Time: O(n) where n is number of DOM nodes visited.
+// Space: O(k) where k is number of matched nodes.</code></pre>
+      </div>
+
+      <div class="card">
+        <h2>Dry Run</h2>
+        <pre><code>// Suppose we search for class "a" in the sample tree.
+// root (has a) -> match
+// child-1 (no a) -> skip
+// grandchild (has a) -> match
+// child-2 (no a) -> skip
+// grandchild-2 (has a) -> match
+// Result: [root, grandchild, grandchild-2]</code></pre>
+      </div>
+
+      <div class="card">
+        <h2>Live Demo Placeholder</h2>
+        <div class="demo-zone" id="demoZone">
+          <div class="demo-title">Sample DOM tree</div>
+
+          <div class="demo-structure" style="margin-top: 14px;">
+            <div class="a" id="root" style="padding: 8px; border: 1px solid #dbeafe; border-radius: 8px;">
+              <strong>root • class="a"</strong>
+              <div class="b" id="b-1" style="margin-left: 16px; margin-top: 8px; padding: 8px; border: 1px solid #dbeafe; border-radius: 8px;">
+                <strong>child-1 • class="b"</strong>
+                <div class="a" id="a-2" style="margin-left: 16px; margin-top: 8px; padding: 8px; border: 1px solid #dbeafe; border-radius: 8px;">
+                  <strong>grandchild • class="a"</strong>
+                  <div class="d" id="d-1" style="margin-left: 16px; margin-top: 8px; padding: 8px; border: 1px solid #dbeafe; border-radius: 8px;">
+                    leaf • class="d"
+                  </div>
+                </div>
+                <div class="c" id="c-1" style="margin-left: 16px; margin-top: 8px; padding: 8px; border: 1px solid #dbeafe; border-radius: 8px;">
+                  <strong>child-2 • class="c"</strong>
+                  <div class="a" id="a-3" style="margin-left: 16px; margin-top: 8px; padding: 8px; border: 1px solid #dbeafe; border-radius: 8px;">
+                    <strong>grandchild-2 • class="a"</strong>
+                    <div class="d" id="d-2" style="margin-left: 16px; margin-top: 8px; padding: 8px; border: 1px solid #dbeafe; border-radius: 8px;">
+                      leaf-2 • class="d"
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <button id="runBtn">Run demo</button>
+        <div id="resultBox" class="result">
+          Add your solution logic, then click Run demo.
+        </div>
+      </div>
+    </div>
+
+    <script>
+      // Revision notes:
+      // 1) Class matching can be done via classList.contains(className).
+      // 2) Avoid using built-in getElementsByClassName for true polyfill practice.
+      // 3) Clarify expected return type (array vs HTMLCollection).
+
+      const resultBox = document.getElementById("resultBox");
+      const runBtn = document.getElementById("runBtn");
+
+      function log(message) {
+        resultBox.textContent += message + "\n";
+      }
+
+      // This function mimics a class-based DOM search using DFS.
+      // It returns an array of matching element IDs.
+      const getByClassName = (root, c) => {
+        // STEP A: Inner helper that visits one node at a time.
+        const search = (node) => {
+          // STEP B: Start with an empty result for the current subtree.
+          let result = [];
+
+          // STEP C: Check the current node itself.
+          // classList.contains(c) returns true if this node has the target class.
+          if (node.classList.contains(c)) {
+            result.push(node.id);
+          }
+
+          // STEP D: Recurse into every child node.
+          // This is the DFS (depth-first search) part.
+          for (let child of node.children) {
+            const childResult = search(child);
+            result = [...result, ...childResult];
+          }
+
+          // STEP E: Return the accumulated matches from this node's subtree.
+          return result;
+        };
+
+        // STEP F: Start the traversal from the provided root element.
+        return search(root);
+      };
+
+      runBtn.addEventListener("click", () => {
+        // STEP G: Clear prior output before each run.
+        resultBox.textContent = "";
+
+        log("Running DFS polyfill demo for class: a");
+        log("-----------------------------------");
+
+        const root = document.getElementById("root");
+        const matchedIds = getByClassName(root, "a");
+
+        log("Matched element IDs: " + matchedIds.join(", "));
+        console.log("getByClassName(root, 'a')", matchedIds);
+      });
+    </script>
+  </body>
+</html>

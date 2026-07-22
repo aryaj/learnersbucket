@@ -1,0 +1,62 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Polyfill - Array.filter</title>
+    <style>
+      body { font-family: Inter, Arial, sans-serif; margin: 24px; background: #f4f6fb; color: #111827; }
+      main { max-width: 900px; margin: 0 auto; background: white; border-radius: 16px; padding: 28px; box-shadow: 0 18px 40px rgba(15,23,42,0.08); }
+      h1 { margin-bottom: 0.5rem; font-size: 2rem; }
+      p { margin: 0.9rem 0; line-height: 1.7; }
+      section { margin-top: 1.75rem; }
+      pre { background: #0f172a; color: #f8fafc; padding: 18px; border-radius: 12px; overflow-x: auto; }
+      code { color: #a5f3fc; }
+      .result { background: #f8fafc; border: 1px solid #cbd5e1; border-radius: 12px; padding: 18px; }
+      .result p { margin: 0.75rem 0; }
+    </style>
+  </head>
+  <body>
+    <main>
+      <h1>Polyfill - Array.filter</h1>
+      <p>This file defines a custom implementation of <code>Array.prototype.filter</code>. It iterates over the array and adds values to the result array only when the callback returns <code>true</code>.</p>
+      <section>
+        <h2>How it works</h2>
+        <p>The polyfill loops through each item, calls the provided callback with the current element, index, and array, and pushes the element into a new array when the callback condition passes.</p>
+      </section>
+      <section>
+        <h2>Implementation</h2>
+        <pre><code>Array.prototype.filterPolyfill = function (callback) {
+  const result = [];
+  for (let i = 0; i < this.length; i++) {
+    if (callback(this[i], i, this)) {
+      result.push(this[i]);
+    }
+  }
+  return result;
+};</code></pre>
+      </section>
+      <section class="result">
+        <h2>Example output</h2>
+        <div id="result"></div>
+      </section>
+    </main>
+
+    <script src="common.js"></script>
+    <script>
+      Array.prototype.filterPolyfill = function (callback) {
+        const result = [];
+        for (let i = 0; i < this.length; i++) {
+          if (callback(this[i], i, this)) {
+            result.push(this[i]);
+          }
+        }
+        return result;
+      };
+
+      const arr = [1, 2, 3, 4, 5, 6, 7, 8, 9];
+      const filtered = arr.filterPolyfill((el) => el % 2 === 0);
+      safeLog(`Filtered evens: ${JSON.stringify(filtered)}`);
+    </script>
+  </body>
+</html>

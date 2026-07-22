@@ -1,0 +1,117 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Polyfill - Promise.any</title>
+    <style>
+      body { font-family: Inter, Arial, sans-serif; margin: 24px; background: #f4f6fb; color: #111827; }
+      main { max-width: 900px; margin: 0 auto; background: white; border-radius: 16px; padding: 28px; box-shadow: 0 18px 40px rgba(15,23,42,0.08); }
+      h1 { margin-bottom: 0.5rem; font-size: 2rem; }
+      p { margin: 0.9rem 0; line-height: 1.7; }
+      section { margin-top: 1.75rem; }
+      pre { background: #0f172a; color: #f8fafc; padding: 18px; border-radius: 12px; overflow-x: auto; }
+      code { color: #a5f3fc; }
+      .result { background: #f8fafc; border: 1px solid #cbd5e1; border-radius: 12px; padding: 18px; }
+      .result p { margin: 0.75rem 0; }
+    </style>
+  </head>
+  <body>
+    <main>
+      <h1>Polyfill - Promise.any</h1>
+      <p>This example implements a simplified version of <code>Promise.any</code>. It accepts an iterable of promises, returns the first promise that fulfills, and rejects only if every promise rejects.</p>
+      <section>
+        <h2>How it works</h2>
+        <p>The polyfill wraps each item with <code>Promise.resolve</code> so non-promise values are accepted. It attaches handlers to every promise and resolves immediately when the first one fulfills. If all promises reject, it rejects with an <code>AggregateError</code> containing every rejection reason.</p>
+      </section>
+      <section>
+        <h2>Implementation</h2>
+        <pre><code>function PromiseAnyPolyfill(iterable) {
+  const promises = Array.from(iterable);
+  const errors = [];
+  let rejectedCount = 0;
+
+  // Use the native AggregateError. If the environment doesn't support it,
+  // this polyfill intentionally assumes a modern environment and will throw.
+  // (Removed custom fallback per request.)
+
+  return new Promise((resolve, reject) => {
+    if (promises.length === 0) {
+      reject(new AggregateError([], "All promises were rejected"));
+      return;
+    }
+
+    promises.forEach((item, index) => {
+      Promise.resolve(item)
+        .then(resolve)
+        .catch((error) => {
+          errors[index] = error;
+          rejectedCount += 1;
+
+          if (rejectedCount === promises.length) {
+            reject(new AggregateError(errors, "All promises were rejected"));
+          }
+        });
+    });
+  });
+}</code></pre>
+      </section>
+      <section class="result">
+        <h2>Example output</h2>
+        <div id="result"></div>
+      </section>
+    </main>
+
+    <script src="common.js"></script>
+    <script>
+      function PromiseAnyPolyfill(iterable) {
+        const promises = Array.from(iterable);
+        const errors = [];
+        let rejectedCount = 0;
+
+        // Use the native AggregateError. If not available, this will throw —
+        // the fallback has been removed per request.
+
+        return new Promise((resolve, reject) => {
+          if (promises.length === 0) {
+            reject(new AggregateError([], "All promises were rejected"));
+            return;
+          }
+
+          promises.forEach((item, index) => {
+            Promise.resolve(item)
+              .then(resolve)
+              .catch((error) => {
+                errors[index] = error;
+                rejectedCount += 1;
+
+                if (rejectedCount === promises.length) {
+                  reject(new AggregateError(errors, "All promises were rejected"));
+                }
+              });
+          });
+        });
+      }
+
+      const task = (time, shouldResolve = false) =>
+        new Promise((resolve, reject) => {
+          setTimeout(() => {
+            if (shouldResolve) {
+              resolve(`completed in ${time}ms`);
+            } else {
+              reject(`failed after ${time}ms`);
+            }
+          }, time);
+        });
+
+      const taskList = [task(100), task(200, true), task(300)];
+
+      PromiseAnyPolyfill(taskList)
+        .then((res) => safeLog(`Resolved value: ${JSON.stringify(res)}`))
+        .catch((err) => {
+          const reasons = err.errors ? JSON.stringify(err.errors) : err;
+          safeLog(`Rejected with AggregateError: ${reasons}`);
+        });
+    </script>
+  </body>
+</html>

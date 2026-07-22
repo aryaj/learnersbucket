@@ -4,18 +4,56 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Method Chaining Calculator</title>
+    <style>
+      body { font-family: Arial, sans-serif; margin: 24px; background: #f4f6fb; color: #111827; }
+      main { max-width: 920px; margin: 0 auto; background: white; border-radius: 14px; padding: 24px; box-shadow: 0 18px 40px rgba(15, 23, 42, 0.08); }
+      h1 { margin-bottom: 0.25rem; font-size: 2rem; }
+      p { margin: 0.75rem 0; }
+      pre { background: #111827; color: #e2e8f0; padding: 18px; border-radius: 12px; overflow-x: auto; }
+      code { color: #a5f3fc; }
+      .result { background: #f8fafc; border: 1px solid #cbd5e1; border-radius: 10px; padding: 16px; }
+      .result p { margin: 0.5rem 0; }
+    </style>
   </head>
   <body>
-    <h1>Method Chaining Calculator</h1>
-    <p>This example implements a calculator object that supports method chaining.</p>
-    <p>Each arithmetic method returns <code>this</code> so multiple calls can be chained together before retrieving the result.</p>
-    <script>
-      /**
-       * Create a chainable calculator object.
-       *
-       * @returns {{add: function, subtract: function, multiply: function, divide: function, result: function}} A chainable calculator.
-       */
-      function calculator() {
+    <main>
+      <h1>Method Chaining Calculator</h1>
+      <p>This document shows how object methods can return <code>this</code> to support chainable operations.</p>
+      <p>The calculator object allows arithmetic expressions to be written in a fluent, chained style.</p>
+      <section>
+        <h2>Implementation</h2>
+        <pre><code>function calculator() {
+  return {
+    total: 0,
+    add: function (num) {
+      this.total += num;
+      return this;
+    },
+    subtract: function (num) {
+      this.total -= num;
+      return this;
+    },
+    multiply: function (num) {
+      this.total *= num;
+      return this;
+    },
+    divide: function (num) {
+      this.total /= num;
+      return this;
+    },
+    result: function () {
+      return this.total;
+    },
+  };
+}</code></pre>
+      </section>
+      <section>
+        <h2>Example output</h2>
+        <div class="result" id="result"></div>
+      </section>
+    </main>
+    <script src="common.js"></script>
+    <script>      function calculator() {
         return {
           total: 0,
           add: function (num) {
@@ -40,14 +78,13 @@
         };
       }
 
-      const result = calculator()
+      const value = calculator()
         .add(10)
         .subtract(2)
         .divide(2)
         .multiply(5)
         .result();
-
-      console.log(result); // 20
+      safeLog(`Result: ${value}`);
     </script>
   </body>
 </html>

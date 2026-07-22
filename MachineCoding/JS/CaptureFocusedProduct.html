@@ -1,0 +1,218 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Capture Focused Product</title>
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        margin: 0;
+        padding: 24px;
+        background: #f5f7fb;
+        color: #111827;
+      }
+
+      .container {
+        max-width: 960px;
+        margin: 0 auto;
+      }
+
+      .card {
+        background: #ffffff;
+        border: 1px solid #d1d5db;
+        border-radius: 14px;
+        padding: 24px;
+        margin-bottom: 24px;
+        box-shadow: 0 10px 30px rgba(15, 23, 42, 0.06);
+      }
+
+      h1,
+      h2 {
+        margin-top: 0;
+      }
+
+      p,
+      li {
+        line-height: 1.7;
+      }
+
+      pre {
+        background: #f8fafc;
+        border: 1px solid #e2e8f0;
+        border-radius: 12px;
+        padding: 16px;
+        overflow-x: auto;
+      }
+
+      code {
+        background: #eef2ff;
+        padding: 2px 6px;
+        border-radius: 6px;
+        font-family: Consolas, Monaco, monospace;
+      }
+
+      .status {
+        margin-bottom: 16px;
+        padding: 10px 14px;
+        border-radius: 10px;
+        background: #eff6ff;
+        border: 1px solid #dbeafe;
+      }
+
+      .product-panel {
+        max-height: 460px;
+        overflow-y: auto;
+        padding-right: 6px;
+      }
+
+      .product-grid {
+        display: grid;
+        grid-template-columns: repeat(3, minmax(160px, 1fr));
+        gap: 12px;
+      }
+
+      .blocks {
+        padding: 22px 16px;
+        min-height: 90px;
+        border: 1px solid #d1d5db;
+        border-radius: 10px;
+        background: #ffffff;
+        box-shadow: 0 6px 16px rgba(15, 23, 42, 0.08);
+        text-align: center;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        transition:
+          transform 0.2s ease,
+          border-color 0.2s ease,
+          background 0.2s ease;
+      }
+
+      .blocks:hover {
+        transform: translateY(-2px);
+      }
+
+      .blocks.focused {
+        background: #dbeafe;
+        border-color: #2563eb;
+        color: #1d4ed8;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <div class="card">
+        <h1>Capture Focused Product</h1>
+        <p>
+          This example shows how to render a list of product cards, keep the
+          view scrollable, and detect the products that are currently visible
+          while the user scrolls.
+        </p>
+      </div>
+
+      <div class="card">
+        <h2>Problem Summary</h2>
+        <ul>
+          <li>Create 27 product blocks with unique IDs.</li>
+          <li>Display them inside a scrollable panel.</li>
+          <li>Increase the card height so the list is easier to read.</li>
+          <li>
+            Track which blocks are currently in the viewport while scrolling.
+          </li>
+        </ul>
+      </div>
+
+      <div class="card">
+        <h2>Implementation Idea</h2>
+        <pre><code>for (let i = 1; i <= 27; i++) {
+  const block = document.createElement('div');
+  block.id = String(i);
+  block.className = 'blocks';
+  block.textContent = `Product ${i}`;
+  container.appendChild(block);
+}</code></pre>
+      </div>
+
+      <div class="card">
+        <h2>Live Demo</h2>
+        <p>
+          Scroll the panel and check the console to see which cards are
+          currently in view.
+        </p>
+        <div class="status">
+          Open the browser console to inspect the visible products while
+          scrolling.
+        </div>
+        <div class="product-panel">
+          <div class="product-grid" id="productContainer"></div>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      // Step 1: Get the scrollable product container and the panel from the DOM.
+      const container = document.getElementById("productContainer");
+      const panel = document.querySelector(".product-panel");
+
+      // Step 2: Create 27 product blocks programmatically.
+      for (let i = 1; i <= 27; i++) {
+        // Step 3: Create a new element for each product card.
+        const block = document.createElement("div");
+
+        // Step 4: Give every block a unique id and the same shared class.
+        block.id = String(i);
+        block.className = "blocks";
+        block.textContent = `Product ${i}`;
+
+        // Step 5: Append each block into the grid container.
+        container.appendChild(block);
+      }
+
+      // Step 6: Check whether a block is inside the visible area of the scrollable panel.
+      const inViewPort = (elem) => {
+        const block = elem.getBoundingClientRect();
+        const panelRect = panel.getBoundingClientRect();
+
+        return (
+          block.top >= panelRect.top &&
+          block.left >= panelRect.left &&
+          block.bottom <= panelRect.bottom &&
+          block.right <= panelRect.right
+        );
+      };
+
+      // Step 7: Collect all visible product cards and log them for inspection.
+      const detectVisibleProducts = () => {
+        const blocks = document.querySelectorAll(".blocks");
+        const focusedBlocks = [];
+
+        blocks.forEach((block) => {
+          if (inViewPort(block)) {
+            focusedBlocks.push(block.textContent);
+          }
+        });
+
+        console.log("Visible products:", focusedBlocks);
+        return focusedBlocks;
+      };
+
+      // Step 8: Create a debounce helper so the scroll handler does not run too frequently.
+      const debounce = (func, delay) => {
+        let inDebounce;
+        return function () {
+          const context = this;
+          const args = arguments;
+          clearTimeout(inDebounce);
+          inDebounce = setTimeout(() => func.apply(context, args), delay);
+        };
+      };
+
+      // Step 9: Attach the debounced scroll listener to the actual scrollable panel.
+      const debouncedDetect = debounce(detectVisibleProducts, 300);
+      panel.addEventListener("scroll", debouncedDetect, false);
+      detectVisibleProducts();
+    </script>
+  </body>
+</html>

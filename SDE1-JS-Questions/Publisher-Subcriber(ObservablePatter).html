@@ -4,41 +4,70 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Publisher-Subscriber (Observable Pattern)</title>
+    <style>
+      body { font-family: Arial, sans-serif; margin: 24px; background: #f4f6fb; color: #111827; }
+      main { max-width: 920px; margin: 0 auto; background: white; border-radius: 14px; padding: 24px; box-shadow: 0 18px 40px rgba(15, 23, 42, 0.08); }
+      h1 { margin-bottom: 0.25rem; font-size: 2rem; }
+      p { margin: 0.75rem 0; }
+      pre { background: #111827; color: #e2e8f0; padding: 18px; border-radius: 12px; overflow-x: auto; }
+      code { color: #a5f3fc; }
+      .result { background: #f8fafc; border: 1px solid #cbd5e1; border-radius: 10px; padding: 16px; }
+      .result p { margin: 0.5rem 0; }
+    </style>
   </head>
   <body>
-    <h1>Publisher-Subscriber (Observable Pattern)</h1>
-    <p>This example implements a simple observable pattern in JavaScript.</p>
-    <p>The observable maintains a list of subscribers and notifies them when new data is emitted.</p>
-    <p>Each subscription returns an <code>unsubscribe</code> method to remove the listener later.</p>
-    <script>
-      /**
-       * Observable constructor for a simple publisher-subscriber model.
-       *
-       * The observable keeps an internal list of observers. Subscribers can register
-       * callbacks using <code>subscribe</code>, and the observable can broadcast values
-       * to all subscribers using <code>notify</code>.
-       */
-      function Observable() {
+    <main>
+      <h1>Publisher-Subscriber (Observable Pattern)</h1>
+      <p>This document explains a simple observable implementation where subscribers receive emitted values.</p>
+      <p>Subscribers can unsubscribe at any time to stop receiving notifications.</p>
+      <section>
+        <h2>Implementation</h2>
+        <pre><code>function Observable() {
+  this.observers = [];
+
+  this.subscribe = (callback) => {
+    if (typeof callback !== 'function') {
+      throw new Error('callback should be a function');
+    }
+    const observer = { callback };
+    this.observers.push(observer);
+    return {
+      unsubscribe: () => {
+        const index = this.observers.indexOf(observer);
+        if (index > -1) {
+          this.observers.splice(index, 1);
+        }
+      },
+    };
+  };
+
+  this.notify = (...data) => {
+    this.observers.forEach((observer) => {
+      try {
+        observer.callback(...data);
+      } catch (err) {
+        console.error('Error while invoking callback', err);
+      }
+    });
+  };
+}</code></pre>
+      </section>
+      <section>
+        <h2>Example output</h2>
+        <div class="result" id="result"></div>
+      </section>
+    </main>
+    <script src="common.js"></script>
+    <script>      function Observable() {
         this.observers = [];
 
-        /**
-         * Subscribe a callback to the observable.
-         *
-         * @param {Function} callback - The function to call when data is emitted.
-         * @returns {{unsubscribe: Function}} A subscription object.
-         */
         this.subscribe = (callback) => {
           if (typeof callback !== 'function') {
             throw new Error('callback should be a function');
           }
-
           const observer = { callback };
           this.observers.push(observer);
-
           return {
-            /**
-             * Remove this subscriber from the observable.
-             */
             unsubscribe: () => {
               const index = this.observers.indexOf(observer);
               if (index > -1) {
@@ -48,40 +77,26 @@
           };
         };
 
-        /**
-         * Notify all observers with the provided values.
-         *
-         * @param {...*} data - Any number of values to pass to subscribers.
-         */
         this.notify = (...data) => {
           this.observers.forEach((observer) => {
             try {
               observer.callback(...data);
             } catch (err) {
-              console.error('Error while invoking callback', err);
+              safeLog(`Error while invoking callback: ${err.message}`);
             }
           });
         };
       }
 
       const observable = new Observable();
-
-      /**
-       * Subscribe a listener to the observable.
-       * The returned subscription object only supports unsubscribe.
-       */
-      const subscribe1 = observable.subscribe((data) => {
-        console.log('Received', data);
+      const subscription = observable.subscribe((data) => {
+        safeLog(`Received: ${data}`);
       });
 
-      // Emit the first value. The subscriber receives it.
       observable.notify('Notify');
-
-      // Remove the subscriber.
-      subscribe1.unsubscribe();
-
-      // Emit again after unsubscribe. No subscriber will receive this.
+      subscription.unsubscribe();
       observable.notify('Hello again');
+      safeLog('Subscription removed. The second notify does not log to subscriber.');
     </script>
   </body>
 </html>
