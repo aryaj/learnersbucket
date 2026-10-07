@@ -1,0 +1,191 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Curry2</title>
+    <style>
+      * {
+        box-sizing: border-box;
+      }
+      body {
+        margin: 0;
+        padding: 32px 20px;
+        background: #f6f8fa;
+        color: #0f172a;
+        font-family: Inter, Arial, sans-serif;
+      }
+      .container {
+        width: min(900px, 100%);
+        margin: 0 auto;
+      }
+      .card {
+        margin-bottom: 20px;
+        padding: 24px;
+        background: #fff;
+        border: 1px solid #e2e8f0;
+        border-radius: 14px;
+        box-shadow: 0 8px 24px rgb(15 23 42 / 5%);
+      }
+      h1,
+      h2 {
+        margin-top: 0;
+      }
+      p,
+      li {
+        line-height: 1.65;
+      }
+      .placeholder {
+        color: #64748b;
+      }
+      button {
+        padding: 10px 16px;
+        color: #fff;
+        background: #2563eb;
+        border: 0;
+        border-radius: 8px;
+        cursor: pointer;
+      }
+      #result {
+        min-height: 72px;
+        margin-top: 14px;
+        padding: 14px;
+        background: #f8fafc;
+        border: 1px solid #e2e8f0;
+        border-radius: 8px;
+        white-space: pre-wrap;
+      }
+    </style>
+  </head>
+  <body>
+    <main class="container">
+      <section class="card">
+        <h1>Curry2</h1>
+        <p>
+          Build a sum function that accepts numbers over multiple calls. A call
+          with one or more arguments should return another function; calling
+          that function with no arguments should finish the chain and return
+          the accumulated sum. This is a variadic currying pattern: each call
+          can receive any number of values.
+        </p>
+      </section>
+
+      <section class="card">
+        <h2>Problem Statement</h2>
+        <p>Implement <code>sum</code> so that values can be provided in groups across calls, with an empty call marking the end of the chain.</p>
+        <pre><code>sum(1, 2)(3, 4)() // 10
+sum(5)()          // 5
+sum()             // 0</code></pre>
+        <p>
+          Each non-empty call should return a function that accepts more
+          values. The final empty call should return the sum of all values
+          collected so far. Calling <code>sum()</code> immediately should
+          return <code>0</code>.
+        </p>
+      </section>
+
+      <section class="card">
+        <h2>Approach (Step By Step)</h2>
+        <ul>
+          <li><strong>Collect the first call:</strong> <code>sum(...args)</code> copies its arguments into the local <code>storage</code> array.</li>
+          <li><strong>Handle an empty first call:</strong> when the initial argument list is empty, return <code>0</code>.</li>
+          <li><strong>Create the continuation function:</strong> otherwise, <code>sum</code> creates and returns <code>temp</code>, which closes over <code>storage</code>.</li>
+          <li><strong>Check each continuation call:</strong> when <code>temp</code> receives no arguments, it reduces <code>storage</code> to a number; when it receives arguments, it returns <code>temp</code> again.</li>
+          <li><strong>Important gap in this implementation:</strong> the non-empty continuation arguments are not appended to <code>storage</code>. As a result, later values are ignored rather than accumulated.</li>
+        </ul>
+      </section>
+
+      <section class="card">
+        <h2>Closure and Dry Run</h2>
+        <p>
+          A closure lets <code>temp</code> keep access to the <code>storage</code>
+          created by its original <code>sum</code> call, even after that call
+          has returned. The current code keeps the initial values in that array,
+          but does not add values received by later calls.
+        </p>
+        <pre><code>sum(1, 2, 3, 4, 10)(20)()
+
+1. Initial storage is [1, 2, 3, 4, 10].
+2. temp(20) receives an argument, but returns temp without storing 20.
+3. temp() receives no arguments and sums the unchanged storage.
+4. Actual result: 20. Expected if every call accumulates: 40.</code></pre>
+        <p>
+          The first-call empty case does match the stated behavior:
+          <code>sum()</code> returns <code>0</code>. The continuation call also
+          needs to append its non-empty arguments to <code>storage</code> for
+          chained values to be included.
+        </p>
+      </section>
+
+      <section class="card">
+        <h2>Complexity</h2>
+        <ul>
+          <li>Summing <code>n</code> stored values on the final empty call takes O(n) time.</li>
+          <li>Storing the supplied values takes O(n) space in total; the returned function retains that array through its closure.</li>
+        </ul>
+      </section>
+
+      <section class="card">
+        <h2>Current Demo</h2>
+        <p>
+          The script logs <code>sum(1, 2, 3, 4, 10)(20)()</code> to the browser
+          console when the page loads. The button below is still starter
+          scaffolding: it only replaces the message with a reminder and does
+          not run the sum example.
+        </p>
+        <button id="runButton" type="button">Run</button>
+        <div id="result" aria-live="polite">
+          The button has not been connected to the currying example yet.
+        </div>
+      </section>
+    </main>
+
+    <script>
+
+      function log(message) {
+        resultBox.textContent += message + "\n";
+      }
+      
+      // STEP 1: Collect every argument from the initial call into an array.
+      // This array is the state that the returned function can access later.
+      function sum(...args) {
+        const storage = [...args];
+
+        // STEP 2: An empty initial call has no values to collect, so finish
+        // immediately with the sum identity value, 0.
+        if (args.length === 0) {
+          return 0;
+        }
+
+        // STEP 3: Create a continuation function. Because it is defined inside
+        // sum, it closes over `storage` and can read it after sum has returned.
+        const temp = function (...args2) {
+          // STEP 4: An empty continuation call is the signal to end the chain.
+          // Reduce the stored values to one total and return that number.
+          if (args2.length === 0) {
+            return storage.reduce((a, b) => a + b, 0);
+          } else {
+            // STEP 5: For a non-empty call, return the continuation function
+            // so the caller can keep chaining. This current version does not
+            // append args2 to storage, so those later values are not summed.
+            return temp;
+          }
+        };
+
+        // STEP 6: Return the function instead of a number so another call can
+        // provide more arguments or an empty call can request the final sum.
+        return temp;
+      }
+
+      // Dry run: the current implementation sums the initial five values (20).
+      // The later value 20 is ignored because STEP 5 does not store args2.
+      console.log(sum(1, 2, 3, 4, 10)(20)());
+
+      // The button is demo scaffolding; it currently only updates this message.
+      document.getElementById("runButton").addEventListener("click", () => {
+        document.getElementById("result").textContent =
+          "Implement your solution, then wire it to this button.";
+      });
+    </script>
+  </body>
+</html>

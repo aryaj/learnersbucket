@@ -1,0 +1,166 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Piping 2</title>
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        margin: 0;
+        padding: 24px;
+        background: #f5f7fb;
+        color: #111827;
+      }
+      .container {
+        max-width: 960px;
+        margin: 0 auto;
+      }
+      .card {
+        background: #ffffff;
+        border: 1px solid #d1d5db;
+        border-radius: 14px;
+        padding: 24px;
+        margin-bottom: 24px;
+        box-shadow: 0 10px 30px rgba(15, 23, 42, 0.06);
+      }
+      h1,
+      h2 {
+        margin-top: 0;
+      }
+      p,
+      li {
+        line-height: 1.7;
+      }
+      pre {
+        background: #f8fafc;
+        border: 1px solid #e2e8f0;
+        border-radius: 12px;
+        padding: 16px;
+        overflow-x: auto;
+      }
+      code {
+        background: #eef2ff;
+        padding: 2px 6px;
+        border-radius: 6px;
+        font-family: Consolas, Monaco, monospace;
+      }
+      button {
+        background: #2563eb;
+        color: white;
+        border: none;
+        padding: 10px 16px;
+        border-radius: 10px;
+        cursor: pointer;
+        font-size: 0.95rem;
+      }
+      .result {
+        margin-top: 16px;
+        padding: 14px;
+        border-radius: 12px;
+        background: #eff6ff;
+        border: 1px solid #dbeafe;
+        white-space: pre-wrap;
+        min-height: 140px;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <div class="card">
+        <h1>Piping 2</h1>
+        <p>
+          Build a function that chains operations in sequence, passing the
+          output of one function into the next.
+        </p>
+      </div>
+
+      <div class="card">
+        <h2>Problem Summary</h2>
+        <ul>
+          <li>Take multiple functions as input.</li>
+          <li>Execute them in order.</li>
+          <li>Pass the previous result into the next function.</li>
+          <li>Return the final computed value.</li>
+        </ul>
+      </div>
+
+      <div class="card">
+        <h2>Approach Template</h2>
+        <pre><code>// Suggested flow:
+// 1) Create a function that accepts an initial value.
+// 2) For each function in the pipeline:
+//    - call the function with current value
+//    - update the current value
+// 3) Return the final result.</code></pre>
+      </div>
+
+      <div class="card">
+        <h2>Implementation Placeholder</h2>
+        <pre><code>// pipe(...functions)
+// function pipe(...functions) {
+//   return function (value) {
+//     return functions.reduce((result, fn) => fn(result), value);
+//   };
+// }
+
+// Example pipeline:
+// const getSalary = (person) => person.salary;
+// const addBonus = (salary) => salary + 1000;
+// const deductTax = (salary) => salary - salary * 0.3;
+// const runPipeline = pipe(getSalary, addBonus, deductTax);
+// runPipeline({ salary: 10000 }); // 7700</code></pre>
+      </div>
+
+      <div class="card">
+        <h2>Live Demo</h2>
+        <button id="runBtn">Run demo</button>
+        <div id="resultBox" class="result">
+          The pipeline output will appear here.
+        </div>
+      </div>
+    </div>
+
+    <script>
+      // Revision notes:
+      // 1) A pipeline is a sequence of transformations.
+      // 2) Each step takes the previous result and returns the next one.
+      // 3) Keep the logic generic so it can work with any list of functions.
+
+      const resultBox = document.getElementById("resultBox");
+      const runBtn = document.getElementById("runBtn");
+
+      function log(message) {
+        resultBox.textContent += message + "\n";
+      }
+
+      // This is the actual implementation of the pipe function.
+      // It starts from the initial value and reduces over the list of functions,
+      // passing the output of one call as the input to the next.
+      const pipe = (...fns) => {
+        return (value) => {
+          return fns.reduce((result, fn) => fn(result), value);
+        };
+      };
+
+      const person = { salary: 10000 };
+
+      const getSalary = (person) => person.salary;
+      const addBonus = (netSalary) => netSalary + 1000;
+      const deductTax = (grossSalary) => grossSalary - grossSalary * 0.3;
+
+      // Example pipeline pipeline:
+      // getSalary -> addBonus -> deductTax
+      const runPipeline = pipe(getSalary, addBonus, deductTax);
+      const finalSalary = runPipeline(person);
+      
+      
+      runBtn.addEventListener("click", () => {
+        resultBox.textContent = "";
+        log("Input person: " + JSON.stringify(person));
+        log("Pipeline steps: getSalary -> addBonus -> deductTax");
+        log("Final result: " + finalSalary);
+      });
+    </script>
+  </body>
+</html>

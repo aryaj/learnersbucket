@@ -1,0 +1,386 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Aggregate the Input Values</title>
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        margin: 0;
+        padding: 24px;
+        background: #f5f7fb;
+        color: #111827;
+      }
+      .container {
+        max-width: 960px;
+        margin: 0 auto;
+      }
+      .card {
+        background: #ffffff;
+        border: 1px solid #d1d5db;
+        border-radius: 14px;
+        padding: 24px;
+        margin-bottom: 24px;
+        box-shadow: 0 10px 30px rgba(15, 23, 42, 0.06);
+      }
+      h1,
+      h2 {
+        margin-top: 0;
+      }
+      p,
+      li {
+        line-height: 1.7;
+      }
+      pre {
+        background: #f8fafc;
+        border: 1px solid #e2e8f0;
+        border-radius: 12px;
+        padding: 16px;
+        overflow-x: auto;
+      }
+      code {
+        background: #eef2ff;
+        padding: 2px 6px;
+        border-radius: 6px;
+        font-family: Consolas, Monaco, monospace;
+      }
+      button {
+        background: #2563eb;
+        color: white;
+        border: none;
+        padding: 10px 16px;
+        border-radius: 10px;
+        cursor: pointer;
+        font-size: 0.95rem;
+      }
+      .result {
+        margin-top: 16px;
+        padding: 14px;
+        border-radius: 12px;
+        background: #eff6ff;
+        border: 1px solid #dbeafe;
+        white-space: pre-wrap;
+        min-height: 140px;
+      }
+      .demo-form {
+        margin-top: 16px;
+        padding: 16px;
+        border: 1px solid #dbeafe;
+        border-radius: 12px;
+        background: #f8fbff;
+      }
+      .field-group {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+        margin-bottom: 14px;
+      }
+      .field-group label {
+        font-weight: 600;
+        color: #374151;
+      }
+      .field-group input {
+        width: 100%;
+        max-width: 360px;
+        padding: 10px 12px;
+        border: 1px solid #cbd5e1;
+        border-radius: 10px;
+        font-size: 0.95rem;
+        outline: none;
+      }
+      .field-group input:focus {
+        border-color: #2563eb;
+        box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.12);
+      }
+      .step-list {
+        margin: 0;
+        padding-left: 20px;
+      }
+      .note {
+        background: #fef3c7;
+        border: 1px solid #fcd34d;
+        border-radius: 10px;
+        padding: 12px 14px;
+        margin-top: 16px;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <div class="card">
+        <h1>Aggregate the Input Values</h1>
+        <p>
+          Combine multiple input values into a single aggregated result based on
+          a given rule or operation.
+        </p>
+      </div>
+
+      <div class="card">
+        <h2>Problem Summary</h2>
+        <ul>
+          <li>Accept multiple values as input.</li>
+          <li>Apply a consistent aggregation logic over all values.</li>
+          <li>Return one final combined result.</li>
+          <li>Handle empty input safely.</li>
+          <li>Keep the solution generic and reusable.</li>
+        </ul>
+      </div>
+
+      <div class="card">
+        <h2>Approach Template</h2>
+        <pre><code>// Suggested flow:
+// 1) Validate the input array or argument list.
+// 2) Start with an initial accumulator value.
+// 3) Traverse each value one by one.
+// 4) Apply aggregation logic for each step.
+// 5) Return the final accumulated value.</code></pre>
+      </div>
+
+      <div class="card">
+        <h2>Implementation Placeholder</h2>
+        <pre><code>// TODO: Implement aggregateInputValues(values)
+// function aggregateInputValues(values) {
+//   // write solution here
+// }</code></pre>
+      </div>
+
+      <div class="card">
+        <h2>Understanding the Problem</h2>
+        <p>
+          The objective is to take flat input names like <strong>foo.bat</strong>,
+          <strong>foo.bar.baz</strong>, and <strong>fizz</strong>, and merge them
+          into a single nested JavaScript object.
+        </p>
+
+        <pre><code>Input shape:
+foo.bat = "1"
+foo.bar.baz = "2"
+fizz = "3"
+
+Output:
+{
+  foo: {
+    bat: "1",
+    bar: {
+      baz: "2"
+    }
+  },
+  fizz: "3"
+}</code></pre>
+
+        <div class="note">
+          This is a path-building problem: each dot-separated key is a route in the object.
+        </div>
+      </div>
+
+      <div class="card">
+        <h2>Why This Works</h2>
+        <ol class="step-list">
+          <li>Split each key by <strong>.</strong> into path segments.</li>
+          <li>Begin from the root object.</li>
+          <li>Traverse step by step using each segment.</li>
+          <li>Create a nested object whenever a parent segment is missing.</li>
+          <li>Assign the actual value only at the last segment.</li>
+        </ol>
+      </div>
+
+      <div class="card">
+        <h2>Step-by-Step Example</h2>
+        <pre><code>// key = 'foo.bar.baz'
+// split => ['foo', 'bar', 'baz']
+
+result = {}
+
+1) result['foo'] = {}
+2) result['foo']['bar'] = {}
+3) result['foo']['bar']['baz'] = value
+
+Final:
+{
+  foo: {
+    bar: {
+      baz: value
+    }
+  }
+}</code></pre>
+      </div>
+
+      <div class="card">
+        <h2>Optimized Solution</h2>
+        <pre><code>function aggregateInputValues(entries) {
+  const result = {};
+
+  for (const { key, value } of entries) {
+    const trimmedValue = value.trim();
+    if (!trimmedValue) continue;
+
+    const path = key.split('.');
+    let current = result;
+
+    for (let i = 0; i &lt; path.length; i++) {
+      const segment = path[i];
+      const isLastSegment = i === path.length - 1;
+
+      if (isLastSegment) {
+        current[segment] = trimmedValue;
+      } else {
+        if (!current[segment] || typeof current[segment] !== 'object') {
+          current[segment] = {};
+        }
+        current = current[segment];
+      }
+    }
+  }
+
+  return result;
+}</code></pre>
+      </div>
+
+      <div class="card">
+        <h2>Complexity</h2>
+        <ul>
+          <li>Time complexity: O(n * k), where n is the number of fields and k is the path depth.</li>
+          <li>Space complexity: O(n * k) because the nested object is constructed in memory.</li>
+        </ul>
+      </div>
+
+      <div class="card">
+        <h2>Live Demo</h2>
+        <button id="runBtn">Aggregate values</button>
+
+        <div id="resultBox" class="result">
+          Change any field or click the button to see the aggregated object.
+        </div>
+
+        <form id="parent" class="demo-form">
+          <div class="field-group">
+            <label for="foo-bat">foo.bat</label>
+            <input
+              id="foo-bat"
+              class="parentInput"
+              type="text"
+              name="foo.bat"
+              placeholder="Enter value for foo.bat"
+              value="1"
+            />
+          </div>
+
+          <div class="field-group">
+            <label for="foo-bar-baz">foo.bar.baz</label>
+            <input
+              id="foo-bar-baz"
+              class="parentInput"
+              type="text"
+              name="foo.bar.baz"
+              placeholder="Enter value for foo.bar.baz"
+              value="2"
+            />
+          </div>
+
+          <div class="field-group">
+            <label for="fizz">fizz</label>
+            <input
+              id="fizz"
+              class="parentInput"
+              type="text"
+              name="fizz"
+              placeholder="Enter value for fizz"
+              value="3"
+            />
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <script>
+      // ---------------------------------------------------
+      // 1) Read the result panel and all input elements.
+      // ---------------------------------------------------
+      const resultBox = document.getElementById("resultBox");
+      const runBtn = document.getElementById("runBtn");
+      const parent = document.getElementById("parent");
+      const inputs = [...parent.querySelectorAll("input")];
+
+      // ---------------------------------------------------
+      // 2) Core logic: aggregate flat dot-path keys into nested objects.
+      //    Example:
+      //    key = 'foo.bar.baz' and value = '2'
+      //    becomes { foo: { bar: { baz: '2' } } }
+      // ---------------------------------------------------
+      function aggregateInputValues(entries) {
+        const result = {};
+
+        // Step 1: iterate through each input field.
+        for (const { key, value } of entries) {
+          const trimmedValue = value.trim();
+
+          // Step 2: ignore empty values to keep the object clean.
+          if (!trimmedValue) continue;
+
+          // Step 3: convert 'foo.bar.baz' into ['foo', 'bar', 'baz'].
+          const path = key.split(".");
+          let current = result;
+
+          // Step 4: walk every segment of the path.
+          for (let i = 0; i < path.length; i++) {
+            const segment = path[i];
+            const isLastSegment = i === path.length - 1;
+
+            // Step 5: if this is the final segment, store the actual value.
+            if (isLastSegment) {
+              current[segment] = trimmedValue;
+              continue;
+            }
+
+            // Step 6: create a container object only if it is missing.
+            if (!current[segment] || typeof current[segment] !== "object") {
+              current[segment] = {};
+            }
+
+            // Step 7: continue walking deeper into the nested object.
+            current = current[segment];
+          }
+        }
+
+        return result;
+      }
+
+      // ---------------------------------------------------
+      // 3) Collect the values from the form as array of objects.
+      // ---------------------------------------------------
+      function collectInputValues() {
+        return inputs.map((input) => ({
+          key: input.name,
+          value: input.value,
+        }));
+      }
+
+      // ---------------------------------------------------
+      // 4) Render the final object for revision/demo purposes.
+      // ---------------------------------------------------
+      function renderAggregatedResult() {
+        const aggregated = aggregateInputValues(collectInputValues());
+        resultBox.textContent = JSON.stringify(aggregated, null, 2);
+      }
+
+      // ---------------------------------------------------
+      // 5) Add change event on every input.
+      //    This means any value update triggers a recomputation immediately.
+      // ---------------------------------------------------
+      inputs.forEach((input) => {
+        input.addEventListener("change", renderAggregatedResult);
+      });
+
+      // ---------------------------------------------------
+      // 6) Also support manual click-triggered execution.
+      // ---------------------------------------------------
+      runBtn.addEventListener("click", () => {
+        renderAggregatedResult();
+      });
+
+      // Keep the demo initialized on page load.
+      renderAggregatedResult();
+    </script>
+  </body>
+</html>

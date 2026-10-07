@@ -1,0 +1,101 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Request/Response Interceptor</title>
+  </head>
+  <body>
+    <div
+      style="
+        max-width: 760px;
+        margin: 20px auto;
+        font-family: Arial, Helvetica, sans-serif;
+        line-height: 1.5;
+        color: #111;
+      "
+    >
+      <h2>Request/Response Interceptor — Documentation</h2>
+      <p>
+        <strong>Purpose:</strong> Build an Axios-style interceptor system on top
+        of <code>fetch</code> that lets consumers register request and response
+        interceptors which run in order before a request is sent and after a
+        response is received.
+      </p>
+      <p><strong>API:</strong></p>
+      <ul>
+        <li>
+          <strong>createClient()</strong> — returns a client instance with
+          <code>request</code>,
+          <code>interceptors.request.use(onFulfilled, onRejected)</code>, and
+          <code>interceptors.response.use(onFulfilled, onRejected)</code>.
+        </li>
+        <li>
+          <strong>client.request(url, options)</strong> — runs registered
+          request interceptors (in order) on the config, performs the fetch,
+          then runs registered response interceptors (in order) on the result.
+        </li>
+      </ul>
+      <p><strong>Behavior notes:</strong></p>
+      <ul>
+        <li>
+          Request interceptors receive and must return a config object (e.g. to
+          add headers/auth tokens).
+        </li>
+        <li>
+          Response interceptors receive and must return the response (or
+          transformed data).
+        </li>
+        <li>
+          An interceptor's <code>onRejected</code> handler can be used to
+          catch/recover from errors thrown earlier in the chain.
+        </li>
+        <li>
+          Interceptors should run in the order they were registered, chaining
+          like a promise pipeline.
+        </li>
+      </ul>
+      <h4>Usage example</h4>
+      <pre style="background: #f3f4f6; padding: 12px; border-radius: 6px">
+const client = createClient();
+
+client.interceptors.request.use((config) => {
+  config.headers = { ...config.headers, Authorization: 'Bearer token' };
+  return config;
+});
+
+client.interceptors.response.use((response) => {
+  console.log('Response received:', response.status);
+  return response;
+});
+
+client.request('/api/data').then((res) => console.log(res));</pre
+      >
+    </div>
+
+    <script>
+      const requestInterceptor = (args) => {
+        return args;
+      };
+      const responseInterceptor = (resp) => {
+        return resp.json();
+      };
+
+      const originalFetch = window.fetch;
+
+      window.fetch = async (...args) => {
+        const updatedRequest = requestInterceptor(args);
+        const response = await originalFetch(...args);
+        const updatedResponse = responseInterceptor(response);
+        return updatedResponse;
+      };
+
+      const result = fetch("https://jsonplaceholder.typicode.com/todos/1").then(
+        (json) => {
+          console.log(json);
+          return json;
+        },
+      );
+    </script>
+  </body>
+</html>

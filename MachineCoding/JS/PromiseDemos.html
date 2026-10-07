@@ -1,0 +1,1362 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Promise / Event Loop Demos</title>
+    <style>
+      * {
+        box-sizing: border-box;
+      }
+      body {
+        font-family: Arial, Helvetica, sans-serif;
+        margin: 0;
+        padding: 24px;
+        background: #f5f7fb;
+        color: #111827;
+      }
+      .container {
+        max-width: 900px;
+        margin: 0 auto;
+      }
+      .card {
+        background: #fff;
+        border: 1px solid #d1d5db;
+        border-radius: 14px;
+        padding: 20px;
+        margin-bottom: 20px;
+        box-shadow: 0 10px 30px rgba(15, 23, 42, 0.06);
+      }
+      h1,
+      h2 {
+        margin-top: 0;
+      }
+      .scenario {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+        padding: 10px 0;
+        border-bottom: 1px solid #eef2f7;
+      }
+      .scenario:last-child {
+        border-bottom: none;
+      }
+      .scenario-name {
+        font-weight: 600;
+      }
+      .scenario-desc {
+        font-size: 0.85rem;
+        color: #6b7280;
+      }
+      button {
+        background: #2563eb;
+        color: #fff;
+        border: none;
+        padding: 8px 14px;
+        border-radius: 8px;
+        cursor: pointer;
+        font-size: 0.9rem;
+        white-space: nowrap;
+      }
+      button:hover {
+        background: #1d4ed8;
+      }
+      #output {
+        background: #0f172a;
+        color: #e2e8f0;
+        font-family: Consolas, Monaco, monospace;
+        font-size: 0.85rem;
+        padding: 16px;
+        border-radius: 10px;
+        min-height: 160px;
+        max-height: 400px;
+        overflow-y: auto;
+        white-space: pre-wrap;
+      }
+      .output-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin-bottom: 8px;
+      }
+      .clear-btn {
+        background: #64748b;
+      }
+      .clear-btn:hover {
+        background: #475569;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <div class="card">
+        <h1>Promise / Event Loop Demos</h1>
+        <p>
+          Each scenario below is a placeholder — implement the function body in
+          the script to explore ordering of sync code, microtasks (Promises),
+          and macrotasks (setTimeout).
+        </p>
+      </div>
+
+      <div class="card">
+        <h2>Scenarios</h2>
+        <div class="scenario">
+          <div>
+            <div class="scenario-name">promiseChainAndFinally</div>
+            <div class="scenario-desc">
+              Follow a Promise chain and observe when finally runs
+            </div>
+          </div>
+          <button onclick="promiseChainAndFinally()">Run</button>
+        </div>
+        <div class="scenario">
+          <div>
+            <div class="scenario-name">promiseVsTimeoutOrdering</div>
+            <div class="scenario-desc">
+              Compare synchronous logs, Promise callbacks, and setTimeout
+            </div>
+          </div>
+          <button onclick="promiseVsTimeoutOrdering()">Run</button>
+        </div>
+        <div class="scenario">
+          <div>
+            <div class="scenario-name">1. await + setTimeout</div>
+            <div class="scenario-desc">await + setTimeout</div>
+          </div>
+          <button onclick="awaitSetTimeout()">Run</button>
+        </div>
+        <div class="scenario">
+          <div>
+            <div class="scenario-name">1. complexAsyncAwaitSetTimeout1</div>
+            <div class="scenario-desc">complexAsyncAwaitSetTimeout1</div>
+          </div>
+          <button onclick="complexAsyncAwaitSetTimeout1()">Run</button>
+        </div>
+
+        <div class="scenario">
+          <div>
+            <div class="scenario-name">complexAsyncAwaitSetTimeout2</div>
+            <div class="scenario-desc">complexAsyncAwaitSetTimeout2</div>
+          </div>
+          <button onclick="complexAsyncAwaitSetTimeout2()">Run</button>
+        </div>
+
+        <div class="scenario">
+          <div>
+            <div class="scenario-name">promiseChainSetTimeout</div>
+            <div class="scenario-desc">promiseChainSetTimeout</div>
+          </div>
+          <button onclick="promiseChainSetTimeout()">Run</button>
+        </div>
+        <div class="scenario">
+          <div>
+            <div class="scenario-name">3. async/await pausing</div>
+            <div class="scenario-desc">
+              Code before/after await, relative to caller's remaining sync code
+            </div>
+          </div>
+          <button onclick="asyncAwaitSetTimeout()">Run</button>
+        </div>
+        <div class="scenario">
+          <div>
+            <div class="scenario-name">promiseVsAwaitSetTimeout</div>
+            <div class="scenario-desc">
+              Compare a Promise microtask with async/await waiting for
+              setTimeout
+            </div>
+          </div>
+          <button onclick="promiseVsAwaitSetTimeout()">Run</button>
+        </div>
+        <div class="scenario">
+          <div>
+            <div class="scenario-name">asyncAwaitResolvedValue</div>
+            <div class="scenario-desc">
+              Awaiting an already-resolved value still resumes asynchronously
+            </div>
+          </div>
+          <button onclick="asyncAwaitResolvedValue()">Run</button>
+        </div>
+        <div class="scenario">
+          <div>
+            <div class="scenario-name">promiseAllWithTimerId</div>
+            <div class="scenario-desc">
+              Promise.all receives a timer ID when setTimeout is returned
+            </div>
+          </div>
+          <button onclick="promiseAllWithTimerId()">Run</button>
+        </div>
+        <div class="scenario">
+          <div>
+            <div class="scenario-name">promiseAwaitTimeoutOrdering</div>
+            <div class="scenario-desc">
+              Compare Promise callbacks, await continuations, and timers
+            </div>
+          </div>
+          <button onclick="promiseAwaitTimeoutOrdering()">Run</button>
+        </div>
+        <div class="scenario">
+          <div>
+            <div class="scenario-name">nestedPromise</div>
+            <div class="scenario-desc">nestedPromise</div>
+          </div>
+          <button onclick="nestedPromise()">Run</button>
+        </div>
+        <div class="scenario">
+          <div>
+            <div class="scenario-name">nestedPromise2</div>
+            <div class="scenario-desc">
+              Promise adoption with delayed nested promises
+            </div>
+          </div>
+          <button onclick="nestedPromise2()">Run</button>
+        </div>
+        <div class="scenario">
+          <div>
+            <div class="scenario-name">nestedPromise3</div>
+            <div class="scenario-desc">
+              Resolve with a thenable object that behaves like a Promise
+            </div>
+          </div>
+          <button onclick="nestedPromise3()">Run</button>
+        </div>
+        <div class="scenario">
+          <div>
+            <div class="scenario-name">promiseVsAsyncAwait1</div>
+            <div class="scenario-desc">promiseVsAsyncAwait1</div>
+          </div>
+          <button onclick="promiseVsAsyncAwait1()">Run</button>
+        </div>
+        <div class="scenario">
+          <div>
+            <div class="scenario-name">delayedProimisePromiseVsAsyncAwait2</div>
+            <div class="scenario-desc">delayedProimisePromiseVsAsyncAwait2</div>
+          </div>
+          <button onclick="delayedProimisePromiseVsAsyncAwait2()">Run</button>
+        </div>
+        <div class="scenario">
+          <div>
+            <div class="scenario-name">multipleAsyncSteps</div>
+            <div class="scenario-desc">
+              Run multiple asynchronous steps with .then() and async/await
+            </div>
+          </div>
+          <button onclick="multipleAsyncSteps()">Run</button>
+        </div>
+        <div class="scenario">
+          <div>
+            <div class="scenario-name">errorHandling</div>
+            <div class="scenario-desc">
+              Handle Promise rejection and async errors with catch, try/catch,
+              and finally
+            </div>
+          </div>
+          <button onclick="errorHandling()">Run</button>
+        </div>
+        <div class="scenario">
+          <div>
+            <div class="scenario-name">complexAsyncAwaitQuestion</div>
+            <div class="scenario-desc">
+              Complex Promise/async/await scenario (custom implementation)
+            </div>
+          </div>
+          <button onclick="complexAsyncAwaitQuestion()">Run</button>
+        </div>
+        <div class="scenario">
+          <div>
+            <div class="scenario-name">complexAsyncAwaitQuestion2</div>
+            <div class="scenario-desc">
+              Complex Promise/async/await scenario (custom implementation)
+            </div>
+          </div>
+          <button onclick="complexAsyncAwaitQuestion2()">Run</button>
+        </div>
+        <div class="scenario">
+          <div>
+            <div class="scenario-name">complexAsyncAwaitQuestion3</div>
+            <div class="scenario-desc">
+              Complex Promise/async/await scenario (custom implementation)
+            </div>
+          </div>
+          <button onclick="complexAsyncAwaitQuestion3()">Run</button>
+        </div>
+        <div class="scenario">
+          <div>
+            <div class="scenario-name">complexAsyncAwaitQuestion4</div>
+            <div class="scenario-desc">
+              Complex Promise/async/await scenario (custom implementation)
+            </div>
+          </div>
+          <button onclick="complexAsyncAwaitQuestion4()">Run</button>
+        </div>
+        <div class="scenario">
+          <div>
+            <div class="scenario-name">complexAsyncAwaitQuestion5</div>
+            <div class="scenario-desc">
+              Complex Promise/async/await scenario (custom implementation)
+            </div>
+          </div>
+          <button onclick="complexAsyncAwaitQuestion5()">Run</button>
+        </div>
+        <div class="scenario">
+          <div>
+            <div class="scenario-name">complexAsyncAwaitQuestion6</div>
+            <div class="scenario-desc">
+              Complex Promise/async/await scenario (custom implementation)
+            </div>
+          </div>
+          <button onclick="complexAsyncAwaitQuestion6()">Run</button>
+        </div>
+        <div class="scenario">
+          <div>
+            <div class="scenario-name">tryCatch1</div>
+            <div class="scenario-desc">
+              Complex Promise/async/await scenario (custom implementation)
+            </div>
+          </div>
+          <button onclick="tryCatch1()">Run</button>
+        </div>
+        <div class="scenario">
+          <div>
+            <div class="scenario-name">tryCatch2</div>
+            <div class="scenario-desc">
+              Complex Promise/async/await scenario (custom implementation)
+            </div>
+          </div>
+          <button onclick="tryCatch2()">Run</button>
+        </div>
+        <div class="scenario">
+          <div>
+            <div class="scenario-name">tryCatch3</div>
+            <div class="scenario-desc">
+              Complex Promise/async/await scenario (custom implementation)
+            </div>
+          </div>
+          <button onclick="tryCatch3()">Run</button>
+        </div>
+        <div class="scenario">
+          <div>
+            <div class="scenario-name">tryCatch4</div>
+            <div class="scenario-desc">
+              Complex Promise/async/await scenario (custom implementation)
+            </div>
+          </div>
+          <button onclick="tryCatch4()">Run</button>
+        </div>
+        <div class="scenario">
+          <div>
+            <div class="scenario-name">tryCatch5</div>
+            <div class="scenario-desc">
+              Complex Promise/async/await scenario (custom implementation)
+            </div>
+          </div>
+          <button onclick="tryCatch5()">Run</button>
+        </div>
+        <div class="scenario">
+          <div>
+            <div class="scenario-name">tryCatch6</div>
+            <div class="scenario-desc">
+              Complex Promise/async/await scenario (custom implementation)
+            </div>
+          </div>
+          <button onclick="tryCatch6()">Run</button>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="output-header">
+          <h2 style="margin: 0">Console Output</h2>
+          <button class="clear-btn" onclick="clearOutput()">Clear</button>
+        </div>
+        <div id="output"></div>
+      </div>
+    </div>
+
+    <script>
+      // Mirror console.log output into the on-page panel as well as devtools.
+      const outputEl = document.getElementById("output");
+      const originalLog = console.log.bind(console);
+      console.log = (...args) => {
+        originalLog(...args);
+        const line = args
+          .map((a) => (typeof a === "object" ? JSON.stringify(a) : String(a)))
+          .join(" ");
+        outputEl.textContent += line + "\n";
+        outputEl.scrollTop = outputEl.scrollHeight;
+      };
+
+      function clearOutput() {
+        outputEl.textContent = "";
+      }
+
+      function promiseChainAndFinally() {
+        // TODO: log sync code, a setTimeout(fn, 0), and a Promise.resolve().then()
+        // and observe the order they print in.
+        const result = new Promise((resolve, reject) => {
+          const data = "Data fetched from database";
+          resolve(data);
+        });
+
+        //console.log(result);
+        result
+          .then((res) => console.log(res))
+          .finally(() => console.log("finally"));
+
+        Promise.resolve("test").then((res) => console.log(res));
+
+        const response = Promise.resolve(20)
+          .then((res) => res * 2)
+          .then((res) => res * 2)
+          .then((res) => res * 2)
+          .then((res) => res * 2);
+        console.log(response);
+        response.then((res) => console.log(res));
+      }
+
+      function promiseVsTimeoutOrdering() {
+        // TODO: log sync code, a setTimeout(fn, 0), and a Promise.resolve().then()
+        // and observe the order they print in.
+
+        console.log("Start");
+        setTimeout(() => {
+          console.log("Timeout");
+        }, 0);
+
+        Promise.resolve("Promise").then((res) => console.log(res));
+
+        console.log("End");
+      }
+
+      function awaitSetTimeout() {
+        async function test() {
+          console.log("A");
+
+          await new Promise((resolve) => {
+            setTimeout(() => {
+              console.log("B");
+              resolve();
+            }, 0);
+          });
+
+          console.log("C");
+        }
+
+        test();
+
+        console.log("D");
+      }
+
+      function complexAsyncAwaitSetTimeout1() {
+        console.log("1");
+
+        setTimeout(() => {
+          console.log("2");
+
+          Promise.resolve().then(() => {
+            console.log("3");
+          });
+        }, 0);
+
+        Promise.resolve().then(() => {
+          console.log("4");
+
+          setTimeout(() => {
+            console.log("5");
+          }, 0);
+        });
+
+        async function test() {
+          console.log("6");
+
+          await Promise.resolve();
+
+          console.log("7");
+
+          setTimeout(() => {
+            console.log("8");
+          }, 0);
+        }
+
+        test();
+
+        console.log("9");
+      }
+
+      function complexAsyncAwaitSetTimeout2() {
+        console.log("1");
+
+        setTimeout(() => {
+          console.log("2");
+
+          Promise.resolve().then(() => {
+            console.log("3");
+          });
+        }, 0);
+
+        Promise.resolve().then(() => {
+          console.log("4");
+
+          setTimeout(() => {
+            console.log("5");
+          }, 0);
+        });
+
+        async function test() {
+          console.log("6");
+
+          await Promise.resolve();
+
+          console.log("7");
+
+          setTimeout(() => {
+            console.log("8");
+          }, 0);
+        }
+
+        test();
+
+        console.log("9");
+      }
+
+      function promiseChainSetTimeout() {
+        console.log("A");
+
+        Promise.resolve()
+          .then(() => {
+            console.log("B");
+
+            setTimeout(() => {
+              console.log("C");
+            }, 0);
+          })
+          .then(() => {
+            console.log("D");
+          });
+
+        setTimeout(() => {
+          console.log("E");
+        }, 0);
+
+        console.log("F");
+      }
+
+      function asyncAwaitSetTimeout() {
+        async function test() {
+          console.log("A");
+
+          await new Promise((resolve) => {
+            setTimeout(() => {
+              console.log("B");
+              resolve();
+            }, 0);
+          });
+
+          console.log("C");
+        }
+
+        test();
+
+        console.log("D");
+      }
+
+      async function promiseVsAwaitSetTimeout() {
+        async function test() {
+          console.log("A");
+
+          await new Promise((resolve) => {
+            setTimeout(() => {
+              console.log("B");
+              resolve();
+            }, 0);
+          });
+
+          console.log("C");
+        }
+
+        Promise.resolve().then(() => {
+          console.log("D");
+        });
+
+        test();
+
+        console.log("E");
+      }
+
+      async function asyncAwaitResolvedValue() {
+        async function test() {
+          console.log("A");
+
+          await 10;
+
+          console.log("B");
+        }
+
+        test();
+
+        console.log("C");
+      }
+
+      async function promiseAllWithTimerId() {
+        console.log("A");
+
+        Promise.all([
+          Promise.resolve("X"),
+          Promise.resolve("Y").then((res) =>
+            setTimeout(() => {
+              console.log(res);
+            }, 1000),
+          ),
+        ]).then((res) => {
+          console.log("B");
+          console.log("res", res);
+        });
+
+        console.log("C");
+      }
+
+      function promiseAwaitTimeoutOrdering() {
+        console.log("A");
+
+        setTimeout(() => {
+          console.log("B");
+
+          Promise.resolve().then(() => {
+            console.log("C");
+          });
+
+          Promise.resolve().then(() => {
+            console.log("D");
+          });
+        }, 0);
+
+        async function test() {
+          console.log("E");
+
+          await Promise.resolve();
+
+          console.log("F");
+
+          await Promise.resolve();
+
+          console.log("G");
+        }
+
+        test();
+
+        Promise.resolve().then(() => {
+          console.log("H");
+
+          setTimeout(() => {
+            console.log("I");
+          }, 0);
+        });
+
+        console.log("J");
+      }
+
+      function nestedPromise() {
+        const p1 = Promise.resolve(Promise.resolve(Promise.resolve("A")));
+
+        p1.then((value) => {
+          console.log(value);
+        });
+
+        function wait(ms) {
+          return new Promise((resolve) => {
+            setTimeout(() => {
+              resolve("resolved value");
+            }, ms);
+          });
+        }
+
+        async function run() {
+          const result = await wait(1000);
+
+          console.log("After one second", result);
+        }
+
+        run();
+      }
+
+      function nestedPromise2() {
+        console.log("1");
+
+        const p = new Promise((resolve) => {
+          console.log("2");
+
+          setTimeout(() => {
+            console.log("3");
+            resolve("A");
+          }, 0);
+        });
+
+        p.then((value) => {
+          console.log("4", value);
+        });
+
+        console.log("5");
+      }
+
+      function nestedPromise3() {
+        const p = new Promise((resolve) => {
+          resolve("A");
+        });
+
+        console.log("1");
+
+        p.then((value) => {
+          console.log("2", value);
+        });
+
+        console.log("3");
+
+        async function a() {
+          return Promise.resolve("A");
+        }
+        a().then((val) => console.log(val));
+
+        async function b() {
+          return await Promise.resolve("B");
+        }
+        b().then((val) => console.log(val));
+      }
+
+      function promiseVsAsyncAwait1() {
+        Promise.resolve("Hello").then((res) => {
+          console.log(res);
+        });
+
+        async function run() {
+          const result = await Promise.resolve("Hello");
+          console.log(result);
+        }
+
+        run();
+      }
+
+      function delayedProimisePromiseVsAsyncAwait2() {
+        function wait(ms) {
+          return new Promise((resolve, reject) => {
+            setTimeout(() => {
+              resolve("Finished");
+            }, ms);
+          });
+        }
+
+        wait(1000).then((res) => console.log(res));
+
+        async function run() {
+          const result = await wait(2000);
+          console.log(result);
+        }
+        run();
+      }
+
+      function multipleAsyncSteps() {
+        function getUser() {
+          return new Promise((resolve) => {
+            setTimeout(() => {
+              resolve({ userId: 1, name: "Ajay" });
+            }, 1000);
+          });
+        }
+        function getOrders(userId) {
+          return new Promise((resolve) => {
+            setTimeout(() => {
+              resolve(`Order value for ${userId} is 500`);
+            }, 1000);
+          });
+        }
+
+        getUser()
+          .then((res) => {
+            return getOrders(res.userId);
+          })
+          .then((res) => console.log(res));
+
+        async function run() {
+          const user = await getUser();
+          const orderValue = await getOrders(user.userId);
+          console.log(orderValue);
+        }
+        run();
+      }
+
+      function errorHandling() {
+        console.log("Start");
+
+        Promise.reject(new Error("Promise failed"))
+          .then((val) => console.log(res))
+          .catch((err) => {
+            console.log(err.message);
+          })
+          .finally(() => console.log("Finished"));
+
+        async function run() {
+          try {
+            const res = await Promise.reject(new Error("Promise failed"));
+            console.log(res);
+          } catch (err) {
+            console.log(err.message);
+          } finally {
+            console.log("Finished");
+          }
+        }
+
+        run();
+        console.log("End");
+      }
+
+      function complexAsyncAwaitQuestion() {
+        // TODO: Add your complex Promise/async/await scenario here
+        console.log("1");
+
+        const p = new Promise((resolve) => {
+          console.log("2");
+
+          resolve(
+            new Promise((innerResolve) => {
+              console.log("3");
+
+              setTimeout(() => {
+                console.log("4");
+                innerResolve("A");
+              }, 0);
+            }),
+          );
+
+          console.log("5");
+        });
+
+        p.then((value) => {
+          console.log("6", value);
+        });
+
+        async function test() {
+          console.log("7");
+
+          const value = await p;
+
+          console.log("8", value);
+        }
+
+        test();
+
+        console.log("9");
+      }
+
+      function complexAsyncAwaitQuestion2() {
+        console.log("1");
+        function test() {
+          let result = new Promise((resolve) =>
+            setTimeout(() => resolve("AA"), 500),
+          );
+          result.then((val) => console.log(val));
+        }
+        test();
+        const a = Promise.resolve("A");
+        const b = new Promise((resolve) => {
+          console.log("B");
+          setTimeout(() => {
+            console.log("b settimout");
+            resolve(
+              new Promise((innerResolve) => {
+                console.log("Before inner resolved");
+                innerResolve("Inner Resolved Value");
+              }),
+            );
+          }, 1000);
+        });
+
+        a.then((val) => console.log("a then ", val));
+        console.log("1");
+        b.then((val) => console.log("b resolved", val));
+      }
+
+      function complexAsyncAwaitQuestion3() {
+        console.log("1");
+
+        const p = new Promise((resolve) => {
+          console.log("2");
+
+          setTimeout(() => {
+            console.log("3");
+
+            resolve(Promise.resolve("A"));
+          }, 0);
+        });
+
+        p.then((value) => {
+          console.log("4", value);
+        });
+
+        async function test() {
+          console.log("5");
+
+          const value = await p;
+
+          console.log("6", value);
+
+          await Promise.resolve();
+
+          console.log("7");
+        }
+
+        test();
+
+        Promise.resolve().then(() => {
+          console.log("8");
+
+          setTimeout(() => {
+            console.log("9");
+          }, 0);
+        });
+
+        console.log("10");
+      }
+      function complexAsyncAwaitQuestion4() {
+        console.log("A");
+
+        const p = new Promise((resolve) => {
+          console.log("B");
+
+          setTimeout(() => {
+            console.log("C");
+
+            resolve("X");
+
+            Promise.resolve().then(() => {
+              console.log("D");
+            });
+          }, 0);
+        });
+
+        p.then((value) => {
+          console.log("E", value);
+        });
+
+        async function first() {
+          console.log("F");
+
+          const value = await p;
+
+          console.log("G", value);
+
+          await Promise.resolve();
+
+          console.log("H");
+        }
+
+        first();
+
+        Promise.resolve().then(() => {
+          console.log("I");
+
+          p.then((value) => {
+            console.log("J", value);
+          });
+
+          setTimeout(() => {
+            console.log("K");
+          }, 0);
+        });
+
+        async function second() {
+          console.log("L");
+
+          await Promise.resolve();
+
+          console.log("M");
+
+          const value = await p;
+
+          console.log("N", value);
+        }
+
+        second();
+
+        console.log("O");
+      }
+
+      function complexAsyncAwaitQuestion5() {
+        console.log("1");
+
+        const p = new Promise((resolve) => {
+          console.log("2");
+
+          setTimeout(() => {
+            console.log("3");
+            resolve("A");
+          }, 0);
+        });
+
+        async function first() {
+          console.log("4");
+
+          const x = await p;
+
+          console.log("5", x);
+
+          Promise.resolve().then(() => {
+            console.log("6");
+          });
+
+          setTimeout(() => {
+            console.log("7");
+          }, 0);
+        }
+
+        async function second() {
+          console.log("8");
+
+          await Promise.resolve();
+
+          console.log("9");
+
+          const x = await p;
+
+          console.log("10", x);
+        }
+
+        p.then((x) => {
+          console.log("11", x);
+        });
+
+        first();
+
+        second();
+
+        Promise.resolve().then(() => {
+          console.log("12");
+
+          p.then((x) => {
+            console.log("13", x);
+          });
+        });
+
+        console.log("14");
+      }
+
+      function complexAsyncAwaitQuestion6() {
+        console.log("A");
+
+        const p = new Promise((resolve) => {
+          console.log("B");
+
+          setTimeout(() => {
+            console.log("C");
+            resolve("X");
+
+            Promise.resolve().then(() => {
+              console.log("D");
+            });
+          }, 0);
+        });
+
+        async function one() {
+          console.log("E");
+
+          await p;
+
+          console.log("F");
+
+          Promise.resolve().then(() => {
+            console.log("G");
+          });
+
+          await Promise.resolve();
+
+          console.log("H");
+        }
+
+        async function two() {
+          console.log("I");
+
+          await Promise.resolve();
+
+          console.log("J");
+
+          p.then(() => {
+            console.log("K");
+          });
+
+          await p;
+
+          console.log("L");
+        }
+
+        p.then(() => {
+          console.log("M");
+        });
+
+        one();
+
+        Promise.resolve().then(() => {
+          console.log("N");
+
+          p.then(() => {
+            console.log("O");
+          });
+        });
+
+        two();
+
+        setTimeout(() => {
+          console.log("P");
+
+          Promise.resolve().then(() => {
+            console.log("Q");
+          });
+        }, 0);
+
+        console.log("R");
+      }
+
+      /*  SYNC = []
+
+
+      MICROTASK QUEUE - [
+      ]
+
+
+      TASK QUEUE - [
+        console.log("P");
+      ]
+
+
+      WAITING / REGISTERED - [
+  
+      ]
+
+
+      PROMISE STATES - [
+       P = Pending
+      ] */
+
+      // Output  - A,B,E,I,R, N,J,C,M,F,O,K,L,D,G,H,P,Q
+
+      function tryCatch1() {
+        console.log("A");
+
+        Promise.resolve("X")
+          .then((value) => {
+            console.log("B", value);
+            throw new Error("Something went wrong");
+          })
+          .then((value) => {
+            console.log("C", value);
+          })
+          .catch((error) => {
+            console.log("D", error.message);
+          });
+
+        console.log("E");
+      }
+
+      function tryCatch2() {
+        console.log("A");
+
+        async function test() {
+          console.log("B");
+
+          try {
+            const value = await Promise.reject("ERROR");
+
+            console.log("C", value);
+          } catch (error) {
+            console.log("D", error);
+          }
+
+          console.log("E");
+        }
+
+        test();
+
+        console.log("F");
+      }
+
+      function tryCatch3() {
+        console.log("A");
+
+        async function test() {
+          console.log("B");
+
+          try {
+            const x = await Promise.resolve("X");
+            console.log("C", x);
+
+            const y = await Promise.reject("ERROR");
+            console.log("D", y);
+          } catch (error) {
+            console.log("E", error);
+          }
+
+          console.log("F");
+        }
+
+        test();
+
+        console.log("G");
+      }
+
+      function tryCatch4() {
+        console.log("A");
+
+        async function test() {
+          console.log("B");
+
+          try {
+            await Promise.reject("ERROR");
+            console.log("C");
+          } catch (error) {
+            console.log("D", error);
+            return "RESULT";
+          } finally {
+            console.log("E");
+          }
+
+          console.log("F");
+        }
+
+        test().then((value) => {
+          console.log("G", value);
+        });
+
+        console.log("H");
+      }
+
+      function tryCatch5() {
+        console.log("A");
+
+        async function test() {
+          console.log("B");
+
+          try {
+            await Promise.resolve("X");
+            console.log("C");
+            throw new Error("FAIL");
+          } catch (error) {
+            console.log("D", error.message);
+            return "FROM_CATCH";
+          } finally {
+            console.log("E");
+            return "FROM_FINALLY";
+          }
+        }
+
+        test().then((value) => {
+          console.log("F", value);
+        });
+
+        console.log("G");
+      }
+
+      /*  async function getData() {
+        return Promise.resolve("DATA");
+      } */
+
+      /* async function getData() {
+        return "DATAA";
+      } */
+
+      /*   async function getData() {
+        return await Promise.resolve("DATA");
+      } */
+
+      async function getData() {
+        try {
+          return Promise.reject("DATA");
+        } catch {
+          return "ERROR";
+        }
+      }
+
+      async function getData2() {
+        try {
+          return await Promise.reject("DATA");
+        } catch {
+          return "ERROR";
+        }
+      }
+
+      getData()
+        .then((val) => {
+          console.log("valvalv", val);
+        })
+        .catch((err) => {
+          console.log(err);
+        });
+
+      /*   SYNC - []
+
+      MICROTASK QUEUE - [
+        ]
+
+      TASK QUEUE - [
+      ]
+
+      WAITING FOR PROMISE - [
+
+
+      ]
+
+      PROMISE STATES - []
+
+      output - A,B,G,C,D,FAIL,E,F,FROM_FINALLY */
+
+      /*  async function test() {
+        try {
+          return Promise.reject("ERROR");
+        } catch (error) {
+          console.log("CAUGHT");
+        }
+      } */
+
+      //test()
+
+      function tryCatch6() {
+        console.log("A");
+
+        async function one() {
+          try {
+            return Promise.reject("ERROR");
+          } catch (error) {
+            console.log("B", error);
+            return "CAUGHT";
+          }
+        }
+
+        async function two() {
+          try {
+            return await Promise.reject("ERROR");
+          } catch (error) {
+            console.log("C", error);
+            return "CAUGHT";
+          }
+        }
+
+        one().then(
+          (value) => console.log("D", value),
+          (error) => console.log("E", error),
+        );  
+
+        two().then(
+          (value) => console.log("F", value),
+          (error) => console.log("G", error),
+        );
+
+        console.log("H");
+      }
+
+     // Output - A,H,E,ERROR,C,ERROR,F,CAUGHT
+
+      // A
+      // H
+      // C ERROR
+      // F CAUGHT
+      // E ERROR
+
+
+    </script>
+  </body>
+</html>
