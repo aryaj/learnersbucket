@@ -1,0 +1,202 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>MemoizeFunction</title>
+    <style>
+      * {
+        box-sizing: border-box;
+      }
+      body {
+        margin: 0;
+        padding: 32px 20px;
+        background: #f6f8fa;
+        color: #0f172a;
+        font-family: Inter, Arial, sans-serif;
+      }
+      .container {
+        width: min(900px, 100%);
+        margin: 0 auto;
+      }
+      .card {
+        margin-bottom: 20px;
+        padding: 24px;
+        background: #fff;
+        border: 1px solid #e2e8f0;
+        border-radius: 14px;
+        box-shadow: 0 8px 24px rgb(15 23 42 / 5%);
+      }
+      h1,
+      h2 {
+        margin-top: 0;
+      }
+      p,
+      li {
+        line-height: 1.65;
+      }
+      .placeholder {
+        color: #64748b;
+      }
+      button {
+        padding: 10px 16px;
+        color: #fff;
+        background: #2563eb;
+        border: 0;
+        border-radius: 8px;
+        cursor: pointer;
+      }
+      #result {
+        min-height: 72px;
+        margin-top: 14px;
+        padding: 14px;
+        background: #f8fafc;
+        border: 1px solid #e2e8f0;
+        border-radius: 8px;
+        white-space: pre-wrap;
+      }
+    </style>
+  </head>
+  <body>
+    <main class="container">
+      <section class="card">
+        <h1>MemoizeFunction</h1>
+        <p>
+          Implement <code>memoize(fn)</code> so repeated calls with the same
+          serialized arguments reuse the earlier result instead of invoking
+          <code>fn</code> again.
+        </p>
+      </section>
+
+      <section class="card">
+        <h2>Problem Summary</h2>
+        <ul>
+          <li>Accept a function and return a wrapper that can cache its results.</li>
+          <li>Serialize each call's arguments to form a cache key.</li>
+          <li>Return the saved result when the key is present, including falsey results.</li>
+          <li>On a cache miss, call the original function with the current <code>this</code> value and arguments, then store and return the result.</li>
+          <li>The example memoizes <code>factorial</code> and calls it twice with <code>0</code>.</li>
+        </ul>
+      </section>
+
+      <section class="card">
+        <h2>Approach (Step By Step)</h2>
+        <ul>
+          <li><strong>Create cache state:</strong> <code>memoize</code> creates a <code>Map</code> that the returned wrapper retains through a closure.</li>
+          <li><strong>Build the key:</strong> <code>JSON.stringify(args)</code> converts the argument array to a string.</li>
+          <li><strong>Check membership:</strong> <code>cache.has(key)</code> distinguishes a stored falsey result from a missing entry.</li>
+          <li><strong>Return or compute:</strong> a hit returns the stored value; a miss invokes <code>fn.apply(this, args)</code>, saves its result, and returns it.</li>
+          <li><strong>Factorial behavior:</strong> recursion calls <code>factorial</code> directly, so recursive subproblems do not pass through the memoized wrapper.</li>
+        </ul>
+      </section>
+
+      <section class="card">
+        <h2>Dry Run and Caveats</h2>
+        <pre><code>memoizedFactorial(0)
+
+1. args is [0], so JSON.stringify(args) produces the key '[0]'.
+2. The key is missing; factorial(0) reaches its base case and returns 1.
+3. The wrapper stores 1 under '[0]' and returns it.
+4. The second call creates '[0]' again; cache.has(key) is true, so it returns 1
+   without calling factorial a second time.</code></pre>
+        <p>
+          The <code>Map</code> membership check handles falsey results correctly,
+          but JSON-string keys have limitations: values such as
+          <code>undefined</code>, functions, and symbols in arrays serialize as
+          <code>null</code>, so distinct argument lists can collide. Circular
+          values and <code>BigInt</code> arguments also make
+          <code>JSON.stringify</code> throw. The cache key does not include
+          <code>this</code>, so calls with the same arguments but different
+          receivers can share a result even if <code>fn</code> depends on
+          <code>this</code>.
+        </p>
+      </section>
+
+      <section class="card">
+        <h2>Complexity</h2>
+        <ul>
+          <li>Each lookup first serializes the arguments, taking time proportional to their serialized size; <code>Map</code> lookup is typically O(1) on average.</li>
+          <li>On a cache miss, add the wrapped function's cost. For positive n, this recursive factorial takes O(n) time and O(n) call-stack space.</li>
+          <li>Space used by the cache grows with the number and size of distinct serialized keys and their results.</li>
+        </ul>
+      </section>
+
+      <section class="card">
+        <h2>Try Your Solution</h2>
+        <p class="placeholder">
+          The script logs two timed calls to <code>memoizedFactorial(0)</code>
+          in the browser console when the page loads. The Run button remains a
+          placeholder: it changes the message below but does not run the
+          factorial example.
+        </p>
+        <button id="runButton" type="button">Run</button>
+        <div id="result" aria-live="polite">
+          Your demo output will appear here.
+        </div>
+      </section>
+    </main>
+
+    <script>
+      // STEP 1: Create a memoizer with a private Map retained by its wrapper.
+      // The closure lets later calls reuse entries created by earlier calls.
+
+      function memoize(fn) {
+        const cache = new Map();
+
+        // STEP 2: Return a wrapper that captures each call's arguments and receiver.
+        return function (...args) {
+          // Serialize arguments into the key; this does not include `this`.
+          const key = JSON.stringify(args);
+
+          // STEP 3: Check key presence rather than result truthiness, so values
+          // like 0, false, or undefined can still be valid cached results.
+          if (cache.has(key)) {
+            return cache.get(key);
+          }
+
+          // STEP 4: On a miss, invoke fn with the original receiver and arguments.
+          const result = fn.apply(this, args);
+
+          // Save the computed value in the closure before returning it.
+          cache.set(key, result);
+
+          return result;
+        };
+      }
+
+      // STEP 5: Define recursive factorial; 0 and 1 return from the base case.
+      // Recursive calls use factorial itself, not the memoized wrapper.
+      function factorial(n) {
+        if (n === 0 || n === 1) {
+          return 1;
+        }
+        return n * factorial(n - 1);
+      }
+
+      // STEP 6: Wrap factorial; this cache stores top-level argument/result pairs.
+      const memoizedFactorial = memoize(factorial);
+
+      // STEP 7: Time the first call, which misses the cache and computes factorial(0).
+      const start = performance.now();
+      const result = memoizedFactorial(0);
+      const elapsed = performance.now() - start;
+
+      console.log(`Result1: ${result}`);
+      console.log(`Time1: ${elapsed.toFixed(3)} ms`);
+
+      // The same argument key now hits the cache; factorial is not recomputed.
+      const start2 = performance.now();
+      const result2 = memoizedFactorial(0);
+      const elapsed2 = performance.now() - start2;
+
+      console.log(`Result2: ${result2}`);
+      console.log(`Time2: ${elapsed2.toFixed(3)} ms`);
+
+      // This button handler only updates placeholder text; it does not rerun the example.
+      document.getElementById("runButton").addEventListener("click", () => {
+        document.getElementById("result").textContent =
+          "Implement your solution, then wire it to this button.";
+      });
+    </script>
+  </body>
+</html>
